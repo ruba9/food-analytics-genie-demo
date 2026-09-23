@@ -1,0 +1,62 @@
+/// Dashboard KPI cards read single rows from the sales_kpi view so a card shows the
+/// same value the Foundry agent reports for the same metric.
+table 'Dashboard KPI'
+	lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e10
+
+	measure 'KPI Total Revenue' = CALCULATE(SUM('Dashboard KPI'[metric_value]), 'Dashboard KPI'[metric_name] = "Total Revenue")
+		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e20
+
+	measure 'KPI Total Cost' = CALCULATE(SUM('Dashboard KPI'[metric_value]), 'Dashboard KPI'[metric_name] = "Total Cost")
+		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e21
+
+	measure 'KPI Gross Margin' = CALCULATE(SUM('Dashboard KPI'[metric_value]), 'Dashboard KPI'[metric_name] = "Gross Margin")
+		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e22
+
+	measure 'KPI Sales Volume' = CALCULATE(SUM('Dashboard KPI'[metric_value]), 'Dashboard KPI'[metric_name] = "Sales Volume")
+		formatString: #,0.0
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e23
+
+	measure 'KPI Order Lines' = CALCULATE(SUM('Dashboard KPI'[metric_value]), 'Dashboard KPI'[metric_name] = "Order Lines")
+		formatString: #,0
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e24
+
+	column metric_name
+		dataType: string
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e30
+		summarizeBy: none
+		sourceColumn: metric_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric_value
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e31
+		summarizeBy: none
+		sourceColumn: metric_value
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric_unit
+		dataType: string
+		lineageTag: 3c8e1f20-6d55-4b4f-8c7e-1a2b8d5f6e32
+		summarizeBy: none
+		sourceColumn: metric_unit
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dashboard KPI' = m
+		mode: directQuery
+		source =
+				let
+				    Source = Databricks.Catalogs(ServerHostname, HttpPath, [Catalog=null, Database=null, EnableAutomaticProxyDiscovery=null]),
+				    Catalog = Source{[Name=CatalogName,Kind="Database"]}[Data],
+				    Schema = Catalog{[Name=SchemaName,Kind="Schema"]}[Data],
+				    View = Schema{[Name="sales_kpi",Kind="View"]}[Data]
+				in
+				    View
+
+	annotation PBI_ResultType = Table

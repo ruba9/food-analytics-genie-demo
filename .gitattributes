@@ -1,0 +1,13 @@
+# Normalize text files in the repository.
+* text=auto
+
+# Bash scripts run on Linux; CRLF breaks the shebang.
+*.sh text eol=lf
+
+# Power BI project files are authored by Power BI Desktop using CRLF.
+*.pbip text eol=crlf
+*.pbism text eol=crlf
+*.pbir text eol=crlf
+*.tmdl text eol=crlf
+
+*.png binary

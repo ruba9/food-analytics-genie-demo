@@ -1,0 +1,3989 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.47.16.16243",
+      "templateHash": "11437426746176999265"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus2",
+      "allowedValues": [
+        "westus",
+        "westus2",
+        "eastus",
+        "eastus2",
+        "japaneast",
+        "francecentral",
+        "spaincentral",
+        "uaenorth",
+        "southcentralus",
+        "italynorth",
+        "germanywestcentral",
+        "brazilsouth",
+        "southafricanorth",
+        "australiaeast",
+        "swedencentral",
+        "canadaeast",
+        "canadacentral",
+        "westeurope",
+        "westus3",
+        "uksouth",
+        "southindia",
+        "koreacentral",
+        "polandcentral",
+        "switzerlandnorth",
+        "norwayeast"
+      ],
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "aiServices": {
+      "type": "string",
+      "defaultValue": "aifoundry",
+      "minLength": 2,
+      "maxLength": 40,
+      "metadata": {
+        "description": "Name prefix for your AI Services (Cognitive Services) resource. Lowercase alphanumeric only; a 4-character random suffix will be appended."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "defaultValue": "gpt-4o-mini",
+      "metadata": {
+        "description": "The name of the model you want to deploy"
+      }
+    },
+    "modelFormat": {
+      "type": "string",
+      "defaultValue": "OpenAI",
+      "metadata": {
+        "description": "The provider of your model"
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "defaultValue": "2024-07-18",
+      "metadata": {
+        "description": "The version of your model"
+      }
+    },
+    "modelSkuName": {
+      "type": "string",
+      "defaultValue": "GlobalStandard",
+      "metadata": {
+        "description": "The sku of your model deployment"
+      }
+    },
+    "modelCapacity": {
+      "type": "int",
+      "defaultValue": 30,
+      "metadata": {
+        "description": "The tokens per minute (TPM) of your model deployment"
+      }
+    },
+    "firstProjectName": {
+      "type": "string",
+      "defaultValue": "project",
+      "minLength": 2,
+      "maxLength": 40,
+      "metadata": {
+        "description": "Name prefix for your Foundry project. A 4-character random suffix will be appended."
+      }
+    },
+    "projectDescription": {
+      "type": "string",
+      "defaultValue": "A project for the AI Foundry account with network secured deployed Agent",
+      "metadata": {
+        "description": "This project will be a sub-resource of your account"
+      }
+    },
+    "displayName": {
+      "type": "string",
+      "defaultValue": "network secured agent project",
+      "metadata": {
+        "description": "The display name of the project"
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "agent-vnet",
+      "metadata": {
+        "description": "Virtual Network name. When `existingVnetResourceId` is set, this is ignored — the name is derived from the resource ID."
+      }
+    },
+    "agentSubnetName": {
+      "type": "string",
+      "defaultValue": "agent-subnet",
+      "metadata": {
+        "description": "Agent subnet name. Ignored when `existingAgentSubnetResourceId` is set."
+      }
+    },
+    "peSubnetName": {
+      "type": "string",
+      "defaultValue": "pe-subnet",
+      "metadata": {
+        "description": "Private endpoint subnet name. Ignored when `existingPeSubnetResourceId` is set."
+      }
+    },
+    "mcpSubnetName": {
+      "type": "string",
+      "defaultValue": "mcp-subnet",
+      "metadata": {
+        "description": "MCP subnet name (hosts user-deployed Container Apps such as MCP servers). Ignored when `existingMcpSubnetResourceId` is set."
+      }
+    },
+    "existingVnetResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Existing Virtual Network name Resource ID"
+      }
+    },
+    "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Address space for the VNet (only used for new VNet)"
+      }
+    },
+    "agentSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Address prefix for the agent subnet. The default value is 192.168.0.0/24 but you can choose any size /26 or any class like 10.0.0.0 or 172.168.0.0"
+      }
+    },
+    "peSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Address prefix for the private endpoint subnet"
+      }
+    },
+    "mcpSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Address prefix for the MCP subnet. The default value is 192.168.2.0/24."
+      }
+    },
+    "existingAgentSubnetResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional ARM Resource ID of an existing agent subnet. If provided, the subnet will be referenced as-is and will not be created/modified."
+      }
+    },
+    "existingPeSubnetResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional ARM Resource ID of an existing private endpoint subnet. If provided, the subnet will be referenced as-is and will not be created/modified."
+      }
+    },
+    "existingMcpSubnetResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional ARM Resource ID of an existing MCP subnet. If provided, the subnet will be referenced as-is and will not be created/modified."
+      }
+    },
+    "existingAiSearchResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The AI Search Service full ARM Resource ID. Optional — leave empty to create a new one."
+      }
+    },
+    "existingAzureStorageAccountResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The AI Storage Account full ARM Resource ID. Optional — leave empty to create a new one."
+      }
+    },
+    "existingAzureCosmosDBAccountResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The Cosmos DB Account full ARM Resource ID. Optional — leave empty to create a new one."
+      }
+    },
+    "existingFabricWorkspaceResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The Microsoft Fabric Workspace full ARM Resource ID. Optional — enables Fabric private link connectivity."
+      }
+    },
+    "enableKeyVault": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Deploy a private Key Vault for customer CA certificates. Disable only when private CA trust will not be used."
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional name for a new Key Vault. When empty, a deterministic name is generated."
+      }
+    },
+    "existingKeyVaultResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional existing Key Vault resource ID. When provided, the template uses this vault instead of creating one. The vault must use Azure RBAC authorization."
+      }
+    },
+    "enableContainerRegistry": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable Azure Container Registry with Private Endpoint. When true, creates an ACR (Premium SKU) with a PE in the private endpoints subnet."
+      }
+    },
+    "developerIpCidr": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional developer IP CIDR to allowlist for ACR push access (e.g., 203.0.113.0/26 or 10.0.0.0/16). When empty, public access remains disabled."
+      }
+    },
+    "existingDnsZones": {
+      "type": "object",
+      "defaultValue": {
+        "privatelink.services.ai.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.openai.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.cognitiveservices.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.search.windows.net": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "[format('privatelink.blob.{0}', environment().suffixes.storage)]": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.documents.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.fabric.microsoft.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.azurecr.io": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.vaultcore.azure.net": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        }
+      },
+      "metadata": {
+        "description": "Map of private DNS zone FQDNs to an object `{ subscriptionId, resourceGroup }` describing where the zone lives. Empty `resourceGroup` means \"create the zone in this deployment's resource group\". A non-empty `resourceGroup` references an existing zone in that RG; empty `subscriptionId` defaults to the current subscription, otherwise the zone is referenced cross-subscription. Note: when referencing an existing zone, the VNet link to that zone is NOT managed by this template — the caller must ensure the zone is already linked to the target VNet."
+      }
+    },
+    "existingMonitorDnsZones": {
+      "type": "object",
+      "defaultValue": {
+        "privatelink.monitor.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.oms.opinsights.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.ods.opinsights.azure.com": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        },
+        "privatelink.agentsvc.azure-automation.net": {
+          "subscriptionId": "",
+          "resourceGroup": ""
+        }
+      },
+      "metadata": {
+        "description": "Object mapping Azure Monitor private DNS zone names to an existing zone subscription/resource group, or empty strings to create it. Use to bring your own centralized Private DNS Zones (e.g. an Azure Landing Zone) for agent tracing."
+      }
+    },
+    "projectCapHost": {
+      "type": "string",
+      "defaultValue": "caphostproj",
+      "metadata": {
+        "description": "The name of the project capability host to be created"
+      }
+    }
+  },
+  "variables": {
+    "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 4)]",
+    "accountName": "[toLower(format('{0}{1}', parameters('aiServices'), variables('uniqueSuffix')))]",
+    "projectName": "[toLower(format('{0}{1}', parameters('firstProjectName'), variables('uniqueSuffix')))]",
+    "cosmosDBName": "[toLower(format('{0}{1}cosmosdb', parameters('aiServices'), variables('uniqueSuffix')))]",
+    "aiSearchName": "[toLower(format('{0}{1}search', parameters('aiServices'), variables('uniqueSuffix')))]",
+    "azureStorageName": "[toLower(format('{0}{1}storage', parameters('aiServices'), variables('uniqueSuffix')))]",
+    "acrName": "[toLower(format('acr{0}', variables('uniqueSuffix')))]",
+    "storagePassedIn": "[not(equals(parameters('existingAzureStorageAccountResourceId'), ''))]",
+    "searchPassedIn": "[not(equals(parameters('existingAiSearchResourceId'), ''))]",
+    "cosmosPassedIn": "[not(equals(parameters('existingAzureCosmosDBAccountResourceId'), ''))]",
+    "existingVnetPassedIn": "[not(equals(parameters('existingVnetResourceId'), ''))]",
+    "agentSubnetExists": "[not(equals(parameters('existingAgentSubnetResourceId'), ''))]",
+    "peSubnetExists": "[not(equals(parameters('existingPeSubnetResourceId'), ''))]",
+    "mcpSubnetExists": "[not(equals(parameters('existingMcpSubnetResourceId'), ''))]",
+    "effectiveAgentSubnetName": "[if(variables('agentSubnetExists'), last(split(parameters('existingAgentSubnetResourceId'), '/')), parameters('agentSubnetName'))]",
+    "effectivePeSubnetName": "[if(variables('peSubnetExists'), last(split(parameters('existingPeSubnetResourceId'), '/')), parameters('peSubnetName'))]",
+    "effectiveMcpSubnetName": "[if(variables('mcpSubnetExists'), last(split(parameters('existingMcpSubnetResourceId'), '/')), parameters('mcpSubnetName'))]",
+    "acsParts": "[split(parameters('existingAiSearchResourceId'), '/')]",
+    "aiSearchServiceSubscriptionId": "[if(variables('searchPassedIn'), variables('acsParts')[2], subscription().subscriptionId)]",
+    "aiSearchServiceResourceGroupName": "[if(variables('searchPassedIn'), variables('acsParts')[4], resourceGroup().name)]",
+    "cosmosParts": "[split(parameters('existingAzureCosmosDBAccountResourceId'), '/')]",
+    "cosmosDBSubscriptionId": "[if(variables('cosmosPassedIn'), variables('cosmosParts')[2], subscription().subscriptionId)]",
+    "cosmosDBResourceGroupName": "[if(variables('cosmosPassedIn'), variables('cosmosParts')[4], resourceGroup().name)]",
+    "storageParts": "[split(parameters('existingAzureStorageAccountResourceId'), '/')]",
+    "azureStorageSubscriptionId": "[if(variables('storagePassedIn'), variables('storageParts')[2], subscription().subscriptionId)]",
+    "azureStorageResourceGroupName": "[if(variables('storagePassedIn'), variables('storageParts')[4], resourceGroup().name)]",
+    "useExistingKeyVault": "[and(parameters('enableKeyVault'), not(equals(parameters('existingKeyVaultResourceId'), '')))]",
+    "existingKeyVaultParts": "[split(parameters('existingKeyVaultResourceId'), '/')]",
+    "generatedKeyVaultName": "[format('kv-{0}-{1}', take(parameters('aiServices'), 14), variables('uniqueSuffix'))]",
+    "effectiveKeyVaultName": "[if(not(parameters('enableKeyVault')), '', if(variables('useExistingKeyVault'), variables('existingKeyVaultParts')[8], if(empty(parameters('keyVaultName')), variables('generatedKeyVaultName'), parameters('keyVaultName'))))]",
+    "keyVaultSubscriptionId": "[if(variables('useExistingKeyVault'), variables('existingKeyVaultParts')[2], subscription().subscriptionId)]",
+    "keyVaultResourceGroupName": "[if(variables('useExistingKeyVault'), variables('existingKeyVaultParts')[4], resourceGroup().name)]",
+    "effectiveKeyVaultResourceId": "[if(not(parameters('enableKeyVault')), '', if(variables('useExistingKeyVault'), parameters('existingKeyVaultResourceId'), resourceId('Microsoft.KeyVault/vaults', variables('effectiveKeyVaultName'))))]",
+    "vnetParts": "[split(parameters('existingVnetResourceId'), '/')]",
+    "vnetSubscriptionId": "[if(variables('existingVnetPassedIn'), variables('vnetParts')[2], subscription().subscriptionId)]",
+    "vnetResourceGroupName": "[if(variables('existingVnetPassedIn'), variables('vnetParts')[4], resourceGroup().name)]",
+    "existingVnetName": "[if(variables('existingVnetPassedIn'), last(variables('vnetParts')), parameters('vnetName'))]",
+    "trimVnetName": "[trim(variables('existingVnetName'))]",
+    "aiSearchExists": "[not(equals(parameters('existingAiSearchResourceId'), ''))]",
+    "azureStorageExists": "[not(equals(parameters('existingAzureStorageAccountResourceId'), ''))]",
+    "cosmosDBExists": "[not(equals(parameters('existingAzureCosmosDBAccountResourceId'), ''))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetName": {
+            "value": "[variables('trimVnetName')]"
+          },
+          "useExistingVnet": {
+            "value": "[variables('existingVnetPassedIn')]"
+          },
+          "existingVnetResourceGroupName": {
+            "value": "[variables('vnetResourceGroupName')]"
+          },
+          "agentSubnetName": {
+            "value": "[variables('effectiveAgentSubnetName')]"
+          },
+          "peSubnetName": {
+            "value": "[variables('effectivePeSubnetName')]"
+          },
+          "mcpSubnetName": {
+            "value": "[variables('effectiveMcpSubnetName')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[parameters('vnetAddressPrefix')]"
+          },
+          "agentSubnetPrefix": {
+            "value": "[parameters('agentSubnetPrefix')]"
+          },
+          "peSubnetPrefix": {
+            "value": "[parameters('peSubnetPrefix')]"
+          },
+          "mcpSubnetPrefix": {
+            "value": "[parameters('mcpSubnetPrefix')]"
+          },
+          "existingVnetSubscriptionId": {
+            "value": "[variables('vnetSubscriptionId')]"
+          },
+          "agentSubnetExists": {
+            "value": "[variables('agentSubnetExists')]"
+          },
+          "peSubnetExists": {
+            "value": "[variables('peSubnetExists')]"
+          },
+          "mcpSubnetExists": {
+            "value": "[variables('mcpSubnetExists')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "16275908634912146935"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the deployment"
+              }
+            },
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the virtual network"
+              }
+            },
+            "useExistingVnet": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Indicates if an existing VNet should be used"
+              }
+            },
+            "existingVnetSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID of the existing VNet (if different from current subscription)"
+              }
+            },
+            "existingVnetResourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]",
+              "metadata": {
+                "description": "Resource Group name of the existing VNet (if different from current resource group)"
+              }
+            },
+            "agentSubnetName": {
+              "type": "string",
+              "defaultValue": "agent-subnet",
+              "metadata": {
+                "description": "The name of Agents Subnet"
+              }
+            },
+            "peSubnetName": {
+              "type": "string",
+              "defaultValue": "pe-subnet",
+              "metadata": {
+                "description": "The name of Private Endpoint subnet"
+              }
+            },
+            "mcpSubnetName": {
+              "type": "string",
+              "defaultValue": "mcp-subnet",
+              "metadata": {
+                "description": "The name of MCP subnet for user-deployed Container Apps"
+              }
+            },
+            "vnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Address space for the VNet (only used for new VNet)"
+              }
+            },
+            "agentSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Address prefix for the agent subnet"
+              }
+            },
+            "peSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Address prefix for the private endpoint subnet"
+              }
+            },
+            "mcpSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Address prefix for the MCP subnet"
+              }
+            },
+            "agentSubnetExists": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Set to true to reference the agent subnet as existing (do not create or modify it)"
+              }
+            },
+            "peSubnetExists": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Set to true to reference the private endpoint subnet as existing (do not create or modify it)"
+              }
+            },
+            "mcpSubnetExists": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Set to true to reference the MCP subnet as existing (do not create or modify it)"
+              }
+            }
+          },
+          "resources": [
+            {
+              "condition": "[not(parameters('useExistingVnet'))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "vnet-deployment",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "vnetName": {
+                    "value": "[parameters('vnetName')]"
+                  },
+                  "agentSubnetName": {
+                    "value": "[parameters('agentSubnetName')]"
+                  },
+                  "peSubnetName": {
+                    "value": "[parameters('peSubnetName')]"
+                  },
+                  "mcpSubnetName": {
+                    "value": "[parameters('mcpSubnetName')]"
+                  },
+                  "vnetAddressPrefix": {
+                    "value": "[parameters('vnetAddressPrefix')]"
+                  },
+                  "agentSubnetPrefix": {
+                    "value": "[parameters('agentSubnetPrefix')]"
+                  },
+                  "peSubnetPrefix": {
+                    "value": "[parameters('peSubnetPrefix')]"
+                  },
+                  "mcpSubnetPrefix": {
+                    "value": "[parameters('mcpSubnetPrefix')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.47.16.16243",
+                      "templateHash": "6998367926896442355"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for the deployment"
+                      }
+                    },
+                    "vnetName": {
+                      "type": "string",
+                      "defaultValue": "agents-vnet-test",
+                      "metadata": {
+                        "description": "The name of the virtual network"
+                      }
+                    },
+                    "agentSubnetName": {
+                      "type": "string",
+                      "defaultValue": "agent-subnet",
+                      "metadata": {
+                        "description": "The name of Agents Subnet"
+                      }
+                    },
+                    "peSubnetName": {
+                      "type": "string",
+                      "defaultValue": "pe-subnet",
+                      "metadata": {
+                        "description": "The name of Hub subnet"
+                      }
+                    },
+                    "mcpSubnetName": {
+                      "type": "string",
+                      "defaultValue": "mcp-subnet",
+                      "metadata": {
+                        "description": "The name of MCP subnet for user-deployed Container Apps"
+                      }
+                    },
+                    "vnetAddressPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address space for the VNet"
+                      }
+                    },
+                    "agentSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the agent subnet"
+                      }
+                    },
+                    "peSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the private endpoint subnet"
+                      }
+                    },
+                    "mcpSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the MCP subnet"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "defaultVnetAddressPrefix": "192.168.0.0/16",
+                    "vnetAddress": "[if(empty(parameters('vnetAddressPrefix')), variables('defaultVnetAddressPrefix'), parameters('vnetAddressPrefix'))]",
+                    "agentSubnet": "[if(empty(parameters('agentSubnetPrefix')), cidrSubnet(variables('vnetAddress'), 24, 0), parameters('agentSubnetPrefix'))]",
+                    "peSubnet": "[if(empty(parameters('peSubnetPrefix')), cidrSubnet(variables('vnetAddress'), 24, 1), parameters('peSubnetPrefix'))]",
+                    "mcpSubnet": "[if(empty(parameters('mcpSubnetPrefix')), cidrSubnet(variables('vnetAddress'), 24, 2), parameters('mcpSubnetPrefix'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Network/virtualNetworks",
+                      "apiVersion": "2024-05-01",
+                      "name": "[parameters('vnetName')]",
+                      "location": "[parameters('location')]",
+                      "properties": {
+                        "addressSpace": {
+                          "addressPrefixes": [
+                            "[variables('vnetAddress')]"
+                          ]
+                        },
+                        "subnets": [
+                          {
+                            "name": "[parameters('agentSubnetName')]",
+                            "properties": {
+                              "addressPrefix": "[variables('agentSubnet')]",
+                              "delegations": [
+                                {
+                                  "name": "Microsoft.app/environments",
+                                  "properties": {
+                                    "serviceName": "Microsoft.App/environments"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "[parameters('peSubnetName')]",
+                            "properties": {
+                              "addressPrefix": "[variables('peSubnet')]"
+                            }
+                          },
+                          {
+                            "name": "[parameters('mcpSubnetName')]",
+                            "properties": {
+                              "addressPrefix": "[variables('mcpSubnet')]",
+                              "delegations": [
+                                {
+                                  "name": "Microsoft.App/environments",
+                                  "properties": {
+                                    "serviceName": "Microsoft.App/environments"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "peSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('peSubnetName')]"
+                    },
+                    "agentSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('agentSubnetName')]"
+                    },
+                    "mcpSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('mcpSubnetName')]"
+                    },
+                    "agentSubnetId": {
+                      "type": "string",
+                      "value": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), parameters('agentSubnetName'))]"
+                    },
+                    "peSubnetId": {
+                      "type": "string",
+                      "value": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), parameters('peSubnetName'))]"
+                    },
+                    "mcpSubnetId": {
+                      "type": "string",
+                      "value": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), parameters('mcpSubnetName'))]"
+                    },
+                    "virtualNetworkName": {
+                      "type": "string",
+                      "value": "[parameters('vnetName')]"
+                    },
+                    "virtualNetworkId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+                    },
+                    "virtualNetworkResourceGroup": {
+                      "type": "string",
+                      "value": "[resourceGroup().name]"
+                    },
+                    "virtualNetworkSubscriptionId": {
+                      "type": "string",
+                      "value": "[subscription().subscriptionId]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[parameters('useExistingVnet')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "existing-vnet-deployment",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "vnetName": {
+                    "value": "[parameters('vnetName')]"
+                  },
+                  "vnetResourceGroupName": {
+                    "value": "[parameters('existingVnetResourceGroupName')]"
+                  },
+                  "vnetSubscriptionId": {
+                    "value": "[parameters('existingVnetSubscriptionId')]"
+                  },
+                  "agentSubnetName": {
+                    "value": "[parameters('agentSubnetName')]"
+                  },
+                  "peSubnetName": {
+                    "value": "[parameters('peSubnetName')]"
+                  },
+                  "mcpSubnetName": {
+                    "value": "[parameters('mcpSubnetName')]"
+                  },
+                  "agentSubnetPrefix": {
+                    "value": "[parameters('agentSubnetPrefix')]"
+                  },
+                  "peSubnetPrefix": {
+                    "value": "[parameters('peSubnetPrefix')]"
+                  },
+                  "mcpSubnetPrefix": {
+                    "value": "[parameters('mcpSubnetPrefix')]"
+                  },
+                  "agentSubnetExists": {
+                    "value": "[parameters('agentSubnetExists')]"
+                  },
+                  "peSubnetExists": {
+                    "value": "[parameters('peSubnetExists')]"
+                  },
+                  "mcpSubnetExists": {
+                    "value": "[parameters('mcpSubnetExists')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.47.16.16243",
+                      "templateHash": "1653239141488857604"
+                    }
+                  },
+                  "parameters": {
+                    "vnetName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The name of the existing virtual network"
+                      }
+                    },
+                    "vnetSubscriptionId": {
+                      "type": "string",
+                      "defaultValue": "[subscription().subscriptionId]",
+                      "metadata": {
+                        "description": "Subscription ID of virtual network (if different from current subscription)"
+                      }
+                    },
+                    "vnetResourceGroupName": {
+                      "type": "string",
+                      "defaultValue": "[resourceGroup().name]",
+                      "metadata": {
+                        "description": "Resource Group name of the existing VNet (if different from current resource group)"
+                      }
+                    },
+                    "agentSubnetName": {
+                      "type": "string",
+                      "defaultValue": "agent-subnet",
+                      "metadata": {
+                        "description": "The name of Agents Subnet"
+                      }
+                    },
+                    "peSubnetName": {
+                      "type": "string",
+                      "defaultValue": "pe-subnet",
+                      "metadata": {
+                        "description": "The name of Private Endpoint subnet"
+                      }
+                    },
+                    "mcpSubnetName": {
+                      "type": "string",
+                      "defaultValue": "mcp-subnet",
+                      "metadata": {
+                        "description": "The name of MCP subnet for user-deployed Container Apps"
+                      }
+                    },
+                    "agentSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the agent subnet (only needed if creating new subnet)"
+                      }
+                    },
+                    "peSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the private endpoint subnet (only needed if creating new subnet)"
+                      }
+                    },
+                    "mcpSubnetPrefix": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Address prefix for the MCP subnet (only needed if creating new subnet)"
+                      }
+                    },
+                    "agentSubnetExists": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Set to true to reference the agent subnet as existing (do not create or modify it)"
+                      }
+                    },
+                    "peSubnetExists": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Set to true to reference the private endpoint subnet as existing (do not create or modify it)"
+                      }
+                    },
+                    "mcpSubnetExists": {
+                      "type": "bool",
+                      "defaultValue": false,
+                      "metadata": {
+                        "description": "Set to true to reference the MCP subnet as existing (do not create or modify it)"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2025-04-01",
+                      "name": "[format('agent-subnet-{0}', uniqueString(deployment().name, parameters('agentSubnetName')))]",
+                      "resourceGroup": "[parameters('vnetResourceGroupName')]",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "vnetName": {
+                            "value": "[parameters('vnetName')]"
+                          },
+                          "subnetName": {
+                            "value": "[parameters('agentSubnetName')]"
+                          },
+                          "addressPrefix": "[if(empty(parameters('agentSubnetPrefix')), createObject('value', cidrSubnet(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '2024-05-01').addressSpace.addressPrefixes[0], 24, 0)), createObject('value', parameters('agentSubnetPrefix')))]",
+                          "subnetExists": {
+                            "value": "[parameters('agentSubnetExists')]"
+                          },
+                          "delegations": {
+                            "value": [
+                              {
+                                "name": "Microsoft.App/environments",
+                                "properties": {
+                                  "serviceName": "Microsoft.App/environments"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.47.16.16243",
+                              "templateHash": "5522417959686017699"
+                            }
+                          },
+                          "parameters": {
+                            "vnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the virtual network"
+                              }
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the subnet"
+                              }
+                            },
+                            "addressPrefix": {
+                              "type": "string",
+                              "defaultValue": "",
+                              "metadata": {
+                                "description": "Address prefix for the subnet (only required when creating a new subnet)"
+                              }
+                            },
+                            "delegations": {
+                              "type": "array",
+                              "defaultValue": [],
+                              "metadata": {
+                                "description": "Array of subnet delegations"
+                              }
+                            },
+                            "subnetExists": {
+                              "type": "bool",
+                              "defaultValue": false,
+                              "metadata": {
+                                "description": "Set to true to reference an existing subnet instead of creating one"
+                              }
+                            }
+                          },
+                          "resources": [
+                            {
+                              "condition": "[not(parameters('subnetExists'))]",
+                              "type": "Microsoft.Network/virtualNetworks/subnets",
+                              "apiVersion": "2024-05-01",
+                              "name": "[format('{0}/{1}', parameters('vnetName'), parameters('subnetName'))]",
+                              "properties": {
+                                "addressPrefix": "[parameters('addressPrefix')]",
+                                "delegations": "[parameters('delegations')]"
+                              }
+                            }
+                          ],
+                          "outputs": {
+                            "subnetId": {
+                              "type": "string",
+                              "value": "[if(parameters('subnetExists'), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]))]"
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "value": "[parameters('subnetName')]"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2025-04-01",
+                      "name": "[format('pe-subnet-{0}', uniqueString(deployment().name, parameters('peSubnetName')))]",
+                      "resourceGroup": "[parameters('vnetResourceGroupName')]",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "vnetName": {
+                            "value": "[parameters('vnetName')]"
+                          },
+                          "subnetName": {
+                            "value": "[parameters('peSubnetName')]"
+                          },
+                          "addressPrefix": "[if(empty(parameters('peSubnetPrefix')), createObject('value', cidrSubnet(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '2024-05-01').addressSpace.addressPrefixes[0], 24, 1)), createObject('value', parameters('peSubnetPrefix')))]",
+                          "subnetExists": {
+                            "value": "[parameters('peSubnetExists')]"
+                          },
+                          "delegations": {
+                            "value": []
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.47.16.16243",
+                              "templateHash": "5522417959686017699"
+                            }
+                          },
+                          "parameters": {
+                            "vnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the virtual network"
+                              }
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the subnet"
+                              }
+                            },
+                            "addressPrefix": {
+                              "type": "string",
+                              "defaultValue": "",
+                              "metadata": {
+                                "description": "Address prefix for the subnet (only required when creating a new subnet)"
+                              }
+                            },
+                            "delegations": {
+                              "type": "array",
+                              "defaultValue": [],
+                              "metadata": {
+                                "description": "Array of subnet delegations"
+                              }
+                            },
+                            "subnetExists": {
+                              "type": "bool",
+                              "defaultValue": false,
+                              "metadata": {
+                                "description": "Set to true to reference an existing subnet instead of creating one"
+                              }
+                            }
+                          },
+                          "resources": [
+                            {
+                              "condition": "[not(parameters('subnetExists'))]",
+                              "type": "Microsoft.Network/virtualNetworks/subnets",
+                              "apiVersion": "2024-05-01",
+                              "name": "[format('{0}/{1}', parameters('vnetName'), parameters('subnetName'))]",
+                              "properties": {
+                                "addressPrefix": "[parameters('addressPrefix')]",
+                                "delegations": "[parameters('delegations')]"
+                              }
+                            }
+                          ],
+                          "outputs": {
+                            "subnetId": {
+                              "type": "string",
+                              "value": "[if(parameters('subnetExists'), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]))]"
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "value": "[parameters('subnetName')]"
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Resources/deployments', format('agent-subnet-{0}', uniqueString(deployment().name, parameters('agentSubnetName'))))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2025-04-01",
+                      "name": "[format('mcp-subnet-{0}', uniqueString(deployment().name, parameters('mcpSubnetName')))]",
+                      "resourceGroup": "[parameters('vnetResourceGroupName')]",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "vnetName": {
+                            "value": "[parameters('vnetName')]"
+                          },
+                          "subnetName": {
+                            "value": "[parameters('mcpSubnetName')]"
+                          },
+                          "addressPrefix": "[if(empty(parameters('mcpSubnetPrefix')), createObject('value', cidrSubnet(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '2024-05-01').addressSpace.addressPrefixes[0], 24, 2)), createObject('value', parameters('mcpSubnetPrefix')))]",
+                          "subnetExists": {
+                            "value": "[parameters('mcpSubnetExists')]"
+                          },
+                          "delegations": {
+                            "value": [
+                              {
+                                "name": "Microsoft.App/environments",
+                                "properties": {
+                                  "serviceName": "Microsoft.App/environments"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.47.16.16243",
+                              "templateHash": "5522417959686017699"
+                            }
+                          },
+                          "parameters": {
+                            "vnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the virtual network"
+                              }
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "metadata": {
+                                "description": "Name of the subnet"
+                              }
+                            },
+                            "addressPrefix": {
+                              "type": "string",
+                              "defaultValue": "",
+                              "metadata": {
+                                "description": "Address prefix for the subnet (only required when creating a new subnet)"
+                              }
+                            },
+                            "delegations": {
+                              "type": "array",
+                              "defaultValue": [],
+                              "metadata": {
+                                "description": "Array of subnet delegations"
+                              }
+                            },
+                            "subnetExists": {
+                              "type": "bool",
+                              "defaultValue": false,
+                              "metadata": {
+                                "description": "Set to true to reference an existing subnet instead of creating one"
+                              }
+                            }
+                          },
+                          "resources": [
+                            {
+                              "condition": "[not(parameters('subnetExists'))]",
+                              "type": "Microsoft.Network/virtualNetworks/subnets",
+                              "apiVersion": "2024-05-01",
+                              "name": "[format('{0}/{1}', parameters('vnetName'), parameters('subnetName'))]",
+                              "properties": {
+                                "addressPrefix": "[parameters('addressPrefix')]",
+                                "delegations": "[parameters('delegations')]"
+                              }
+                            }
+                          ],
+                          "outputs": {
+                            "subnetId": {
+                              "type": "string",
+                              "value": "[if(parameters('subnetExists'), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]), resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1]))]"
+                            },
+                            "subnetName": {
+                              "type": "string",
+                              "value": "[parameters('subnetName')]"
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Resources/deployments', format('pe-subnet-{0}', uniqueString(deployment().name, parameters('peSubnetName'))))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "peSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('peSubnetName')]"
+                    },
+                    "agentSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('agentSubnetName')]"
+                    },
+                    "mcpSubnetName": {
+                      "type": "string",
+                      "value": "[parameters('mcpSubnetName')]"
+                    },
+                    "agentSubnetId": {
+                      "type": "string",
+                      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Resources/deployments', format('agent-subnet-{0}', uniqueString(deployment().name, parameters('agentSubnetName')))), '2025-04-01').outputs.subnetId.value]"
+                    },
+                    "peSubnetId": {
+                      "type": "string",
+                      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Resources/deployments', format('pe-subnet-{0}', uniqueString(deployment().name, parameters('peSubnetName')))), '2025-04-01').outputs.subnetId.value]"
+                    },
+                    "mcpSubnetId": {
+                      "type": "string",
+                      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Resources/deployments', format('mcp-subnet-{0}', uniqueString(deployment().name, parameters('mcpSubnetName')))), '2025-04-01').outputs.subnetId.value]"
+                    },
+                    "virtualNetworkName": {
+                      "type": "string",
+                      "value": "[parameters('vnetName')]"
+                    },
+                    "virtualNetworkId": {
+                      "type": "string",
+                      "value": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+                    },
+                    "virtualNetworkResourceGroup": {
+                      "type": "string",
+                      "value": "[parameters('vnetResourceGroupName')]"
+                    },
+                    "virtualNetworkSubscriptionId": {
+                      "type": "string",
+                      "value": "[parameters('vnetSubscriptionId')]"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "virtualNetworkName": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.virtualNetworkName.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.virtualNetworkName.value)]"
+            },
+            "virtualNetworkId": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.virtualNetworkId.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.virtualNetworkId.value)]"
+            },
+            "virtualNetworkSubscriptionId": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.virtualNetworkSubscriptionId.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.virtualNetworkSubscriptionId.value)]"
+            },
+            "virtualNetworkResourceGroup": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.virtualNetworkResourceGroup.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.virtualNetworkResourceGroup.value)]"
+            },
+            "agentSubnetName": {
+              "type": "string",
+              "value": "[parameters('agentSubnetName')]"
+            },
+            "peSubnetName": {
+              "type": "string",
+              "value": "[parameters('peSubnetName')]"
+            },
+            "mcpSubnetName": {
+              "type": "string",
+              "value": "[parameters('mcpSubnetName')]"
+            },
+            "agentSubnetId": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.agentSubnetId.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.agentSubnetId.value)]"
+            },
+            "peSubnetId": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.peSubnetId.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.peSubnetId.value)]"
+            },
+            "mcpSubnetId": {
+              "type": "string",
+              "value": "[if(parameters('useExistingVnet'), reference(resourceId('Microsoft.Resources/deployments', 'existing-vnet-deployment'), '2025-04-01').outputs.mcpSubnetId.value, reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.mcpSubnetId.value)]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('key-vault-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "enabled": {
+            "value": "[and(parameters('enableKeyVault'), not(variables('useExistingKeyVault')))]"
+          },
+          "keyVaultName": {
+            "value": "[variables('effectiveKeyVaultName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "17615199211986510796"
+            }
+          },
+          "parameters": {
+            "enabled": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Whether to create a Key Vault in this resource group."
+              }
+            },
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Key Vault to create."
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Azure region for the Key Vault."
+              }
+            }
+          },
+          "resources": [
+            {
+              "condition": "[parameters('enabled')]",
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2024-11-01",
+              "name": "[parameters('keyVaultName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "tenantId": "[tenant().tenantId]",
+                "sku": {
+                  "family": "A",
+                  "name": "standard"
+                },
+                "accessPolicies": [],
+                "enableRbacAuthorization": true,
+                "enablePurgeProtection": false,
+                "softDeleteRetentionInDays": 90,
+                "publicNetworkAccess": "Enabled",
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "defaultAction": "Deny",
+                  "ipRules": [],
+                  "virtualNetworkRules": []
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "keyVaultName": {
+              "type": "string",
+              "value": "[if(parameters('enabled'), parameters('keyVaultName'), '')]"
+            },
+            "keyVaultResourceId": {
+              "type": "string",
+              "value": "[if(parameters('enabled'), resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "accountName": {
+            "value": "[variables('accountName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "modelName": {
+            "value": "[parameters('modelName')]"
+          },
+          "modelFormat": {
+            "value": "[parameters('modelFormat')]"
+          },
+          "modelVersion": {
+            "value": "[parameters('modelVersion')]"
+          },
+          "modelSkuName": {
+            "value": "[parameters('modelSkuName')]"
+          },
+          "modelCapacity": {
+            "value": "[parameters('modelCapacity')]"
+          },
+          "agentSubnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.agentSubnetId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "279278232742593309"
+            }
+          },
+          "parameters": {
+            "accountName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "modelName": {
+              "type": "string"
+            },
+            "modelFormat": {
+              "type": "string"
+            },
+            "modelVersion": {
+              "type": "string"
+            },
+            "modelSkuName": {
+              "type": "string"
+            },
+            "modelCapacity": {
+              "type": "int"
+            },
+            "agentSubnetId": {
+              "type": "string"
+            },
+            "networkInjection": {
+              "type": "string",
+              "defaultValue": "true"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[parameters('accountName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "S0"
+              },
+              "kind": "AIServices",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "allowProjectManagement": true,
+                "customSubDomainName": "[parameters('accountName')]",
+                "networkAcls": {
+                  "defaultAction": "Deny",
+                  "virtualNetworkRules": [],
+                  "ipRules": [],
+                  "bypass": "AzureServices"
+                },
+                "publicNetworkAccess": "Disabled",
+                "networkInjections": "[if(equals(parameters('networkInjection'), 'true'), createArray(createObject('scenario', 'agent', 'subnetArmId', parameters('agentSubnetId'), 'useMicrosoftManagedNetwork', false())), null())]",
+                "disableLocalAuth": true
+              }
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}', parameters('accountName'), parameters('modelName'))]",
+              "sku": {
+                "capacity": "[parameters('modelCapacity')]",
+                "name": "[parameters('modelSkuName')]"
+              },
+              "properties": {
+                "model": {
+                  "name": "[parameters('modelName')]",
+                  "format": "[parameters('modelFormat')]",
+                  "version": "[parameters('modelVersion')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "accountName": {
+              "type": "string",
+              "value": "[parameters('accountName')]"
+            },
+            "accountID": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+            },
+            "accountTarget": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), '2025-04-01-preview').endpoint]"
+            },
+            "accountPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), '2025-04-01-preview', 'full').identity.principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "condition": "[parameters('enableKeyVault')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('key-vault-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('keyVaultSubscriptionId')]",
+      "resourceGroup": "[variables('keyVaultResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "keyVaultName": {
+            "value": "[variables('effectiveKeyVaultName')]"
+          },
+          "accountPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))), '2025-04-01').outputs.accountPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "3505944131383977580"
+            }
+          },
+          "parameters": {
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Key Vault."
+              }
+            },
+            "accountPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Foundry account system-assigned managed identity."
+              }
+            }
+          },
+          "variables": {
+            "keyVaultSecretsUserRoleGuid": "4633458b-17de-408a-b874-0445c86b69e6"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+              "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), parameters('accountPrincipalId'), subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRoleGuid')))]",
+              "properties": {
+                "principalId": "[parameters('accountPrincipalId')]",
+                "principalType": "ServicePrincipal",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsUserRoleGuid'))]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('key-vault-{0}-deployment', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('dependencies-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "azureStorageName": {
+            "value": "[variables('azureStorageName')]"
+          },
+          "aiSearchName": {
+            "value": "[variables('aiSearchName')]"
+          },
+          "cosmosDBName": {
+            "value": "[variables('cosmosDBName')]"
+          },
+          "existingAiSearchResourceId": {
+            "value": "[parameters('existingAiSearchResourceId')]"
+          },
+          "aiSearchExists": {
+            "value": "[variables('aiSearchExists')]"
+          },
+          "existingAzureStorageAccountResourceId": {
+            "value": "[parameters('existingAzureStorageAccountResourceId')]"
+          },
+          "azureStorageExists": {
+            "value": "[variables('azureStorageExists')]"
+          },
+          "existingCosmosDBResourceId": {
+            "value": "[parameters('existingAzureCosmosDBAccountResourceId')]"
+          },
+          "cosmosDBExists": {
+            "value": "[variables('cosmosDBExists')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "17527584667384475629"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "aiSearchName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the AI Search resource"
+              }
+            },
+            "azureStorageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the storage account"
+              }
+            },
+            "cosmosDBName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the new Cosmos DB account"
+              }
+            },
+            "existingAiSearchResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "The AI Search Service full ARM Resource ID. Optional — leave empty to create a new one."
+              }
+            },
+            "existingAzureStorageAccountResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "The AI Storage Account full ARM Resource ID. Optional — leave empty to create a new one."
+              }
+            },
+            "existingCosmosDBResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "The Cosmos DB Account full ARM Resource ID. Optional — leave empty to create a new one."
+              }
+            },
+            "aiSearchExists": {
+              "type": "bool"
+            },
+            "azureStorageExists": {
+              "type": "bool"
+            },
+            "cosmosDBExists": {
+              "type": "bool"
+            },
+            "noZRSRegions": {
+              "type": "array",
+              "defaultValue": [
+                "southindia",
+                "westus"
+              ]
+            },
+            "sku": {
+              "type": "object",
+              "defaultValue": "[if(contains(parameters('noZRSRegions'), parameters('location')), createObject('name', 'Standard_GRS'), createObject('name', 'Standard_ZRS'))]"
+            }
+          },
+          "variables": {
+            "cosmosParts": "[split(parameters('existingCosmosDBResourceId'), '/')]",
+            "canaryRegions": [
+              "eastus2euap",
+              "centraluseuap"
+            ],
+            "cosmosDbRegion": "[if(contains(variables('canaryRegions'), parameters('location')), 'westus', parameters('location'))]",
+            "acsParts": "[split(parameters('existingAiSearchResourceId'), '/')]",
+            "azureStorageParts": "[split(parameters('existingAzureStorageAccountResourceId'), '/')]"
+          },
+          "resources": [
+            {
+              "condition": "[not(parameters('cosmosDBExists'))]",
+              "type": "Microsoft.DocumentDB/databaseAccounts",
+              "apiVersion": "2024-11-15",
+              "name": "[parameters('cosmosDBName')]",
+              "location": "[variables('cosmosDbRegion')]",
+              "kind": "GlobalDocumentDB",
+              "properties": {
+                "consistencyPolicy": {
+                  "defaultConsistencyLevel": "Session"
+                },
+                "disableLocalAuth": true,
+                "enableAutomaticFailover": false,
+                "enableMultipleWriteLocations": false,
+                "publicNetworkAccess": "Disabled",
+                "enableFreeTier": false,
+                "locations": [
+                  {
+                    "locationName": "[parameters('location')]",
+                    "failoverPriority": 0,
+                    "isZoneRedundant": false
+                  }
+                ],
+                "databaseAccountOfferType": "Standard"
+              }
+            },
+            {
+              "condition": "[not(parameters('aiSearchExists'))]",
+              "type": "Microsoft.Search/searchServices",
+              "apiVersion": "2024-06-01-preview",
+              "name": "[parameters('aiSearchName')]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "disableLocalAuth": false,
+                "authOptions": {
+                  "aadOrApiKey": {
+                    "aadAuthFailureMode": "http401WithBearerChallenge"
+                  }
+                },
+                "encryptionWithCmk": {
+                  "enforcement": "Unspecified"
+                },
+                "hostingMode": "default",
+                "partitionCount": 1,
+                "publicNetworkAccess": "disabled",
+                "replicaCount": 1,
+                "semanticSearch": "disabled",
+                "networkRuleSet": {
+                  "bypass": "None",
+                  "ipRules": []
+                }
+              },
+              "sku": {
+                "name": "standard"
+              }
+            },
+            {
+              "condition": "[not(parameters('azureStorageExists'))]",
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('azureStorageName')]",
+              "location": "[parameters('location')]",
+              "kind": "StorageV2",
+              "sku": "[parameters('sku')]",
+              "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false,
+                "publicNetworkAccess": "Disabled",
+                "networkAcls": {
+                  "bypass": "AzureServices",
+                  "defaultAction": "Deny",
+                  "virtualNetworkRules": []
+                },
+                "allowSharedKeyAccess": false
+              }
+            }
+          ],
+          "outputs": {
+            "aiSearchName": {
+              "type": "string",
+              "value": "[if(parameters('aiSearchExists'), variables('acsParts')[8], parameters('aiSearchName'))]"
+            },
+            "aiSearchID": {
+              "type": "string",
+              "value": "[if(parameters('aiSearchExists'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('acsParts')[2], variables('acsParts')[4]), 'Microsoft.Search/searchServices', variables('acsParts')[8]), resourceId('Microsoft.Search/searchServices', parameters('aiSearchName')))]"
+            },
+            "aiSearchServiceResourceGroupName": {
+              "type": "string",
+              "value": "[if(parameters('aiSearchExists'), variables('acsParts')[4], resourceGroup().name)]"
+            },
+            "aiSearchServiceSubscriptionId": {
+              "type": "string",
+              "value": "[if(parameters('aiSearchExists'), variables('acsParts')[2], subscription().subscriptionId)]"
+            },
+            "azureStorageName": {
+              "type": "string",
+              "value": "[if(parameters('azureStorageExists'), variables('azureStorageParts')[8], parameters('azureStorageName'))]"
+            },
+            "azureStorageId": {
+              "type": "string",
+              "value": "[if(parameters('azureStorageExists'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('azureStorageParts')[2], variables('azureStorageParts')[4]), 'Microsoft.Storage/storageAccounts', variables('azureStorageParts')[8]), resourceId('Microsoft.Storage/storageAccounts', parameters('azureStorageName')))]"
+            },
+            "azureStorageResourceGroupName": {
+              "type": "string",
+              "value": "[if(parameters('azureStorageExists'), variables('azureStorageParts')[4], resourceGroup().name)]"
+            },
+            "azureStorageSubscriptionId": {
+              "type": "string",
+              "value": "[if(parameters('azureStorageExists'), variables('azureStorageParts')[2], subscription().subscriptionId)]"
+            },
+            "cosmosDBName": {
+              "type": "string",
+              "value": "[if(parameters('cosmosDBExists'), variables('cosmosParts')[8], parameters('cosmosDBName'))]"
+            },
+            "cosmosDBId": {
+              "type": "string",
+              "value": "[if(parameters('cosmosDBExists'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('cosmosParts')[2], variables('cosmosParts')[4]), 'Microsoft.DocumentDB/databaseAccounts', variables('cosmosParts')[8]), resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName')))]"
+            },
+            "cosmosDBResourceGroupName": {
+              "type": "string",
+              "value": "[if(parameters('cosmosDBExists'), variables('cosmosParts')[4], resourceGroup().name)]"
+            },
+            "cosmosDBSubscriptionId": {
+              "type": "string",
+              "value": "[if(parameters('cosmosDBExists'), variables('cosmosParts')[2], subscription().subscriptionId)]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('{0}-private-endpoint', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiAccountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))), '2025-04-01').outputs.accountName.value]"
+          },
+          "aiSearchName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchName.value]"
+          },
+          "storageName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageName.value]"
+          },
+          "cosmosDBName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBName.value]"
+          },
+          "fabricWorkspaceResourceId": {
+            "value": "[parameters('existingFabricWorkspaceResourceId')]"
+          },
+          "vnetName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.virtualNetworkName.value]"
+          },
+          "peSubnetName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.peSubnetName.value]"
+          },
+          "suffix": {
+            "value": "[variables('uniqueSuffix')]"
+          },
+          "vnetResourceGroupName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.virtualNetworkResourceGroup.value]"
+          },
+          "vnetSubscriptionId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.virtualNetworkSubscriptionId.value]"
+          },
+          "cosmosDBSubscriptionId": {
+            "value": "[variables('cosmosDBSubscriptionId')]"
+          },
+          "cosmosDBResourceGroupName": {
+            "value": "[variables('cosmosDBResourceGroupName')]"
+          },
+          "aiSearchSubscriptionId": {
+            "value": "[variables('aiSearchServiceSubscriptionId')]"
+          },
+          "aiSearchResourceGroupName": {
+            "value": "[variables('aiSearchServiceResourceGroupName')]"
+          },
+          "storageAccountResourceGroupName": {
+            "value": "[variables('azureStorageResourceGroupName')]"
+          },
+          "storageAccountSubscriptionId": {
+            "value": "[variables('azureStorageSubscriptionId')]"
+          },
+          "existingDnsZones": {
+            "value": "[parameters('existingDnsZones')]"
+          },
+          "keyVaultResourceId": {
+            "value": "[variables('effectiveKeyVaultResourceId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "12992541873290750998"
+            }
+          },
+          "parameters": {
+            "aiAccountName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI Foundry account"
+              }
+            },
+            "aiSearchName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI Search service"
+              }
+            },
+            "storageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the storage account"
+              }
+            },
+            "cosmosDBName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Cosmos DB account"
+              }
+            },
+            "fabricWorkspaceResourceId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "The Microsoft Fabric Workspace full ARM Resource ID. Optional - leave empty to skip Fabric private endpoint."
+              }
+            },
+            "keyVaultResourceId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "The Key Vault full ARM Resource ID. Optional - leave empty to skip the Key Vault private endpoint."
+              }
+            },
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Vnet"
+              }
+            },
+            "peSubnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Customer subnet"
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Suffix for unique resource names"
+              }
+            },
+            "vnetResourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]",
+              "metadata": {
+                "description": "Resource Group name for existing Virtual Network (if different from current resource group)"
+              }
+            },
+            "vnetSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID for Virtual Network"
+              }
+            },
+            "storageAccountResourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]",
+              "metadata": {
+                "description": "Resource Group name for Storage Account"
+              }
+            },
+            "storageAccountSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID for Storage account"
+              }
+            },
+            "aiSearchSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID for AI Search service"
+              }
+            },
+            "aiSearchResourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]",
+              "metadata": {
+                "description": "Resource Group name for AI Search service"
+              }
+            },
+            "cosmosDBSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID for Cosmos DB account"
+              }
+            },
+            "cosmosDBResourceGroupName": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().name]",
+              "metadata": {
+                "description": "Resource group name for Cosmos DB account"
+              }
+            },
+            "existingDnsZones": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Map of DNS zone FQDNs to an object describing where the zone lives. Each value must be an object with optional `subscriptionId` and `resourceGroup` properties. Empty `resourceGroup` means \"create the zone in this deployment's resource group\". Non-empty `resourceGroup` references an existing zone; empty `subscriptionId` defaults to the current subscription."
+              }
+            }
+          },
+          "variables": {
+            "requiredDnsZones": {
+              "privatelink.services.ai.azure.com": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.openai.azure.com": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.cognitiveservices.azure.com": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.search.windows.net": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "[format('privatelink.blob.{0}', environment().suffixes.storage)]": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.documents.azure.com": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.fabric.microsoft.com": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              },
+              "privatelink.vaultcore.azure.net": {
+                "subscriptionId": "",
+                "resourceGroup": ""
+              }
+            },
+            "effectiveDnsZones": "[union(variables('requiredDnsZones'), parameters('existingDnsZones'))]",
+            "fabricPassedIn": "[not(equals(parameters('fabricWorkspaceResourceId'), ''))]",
+            "fabricParts": "[split(parameters('fabricWorkspaceResourceId'), '/')]",
+            "fabricWorkspaceName": "[if(variables('fabricPassedIn'), last(variables('fabricParts')), '')]",
+            "keyVaultEnabled": "[not(equals(parameters('keyVaultResourceId'), ''))]",
+            "keyVaultParts": "[split(parameters('keyVaultResourceId'), '/')]",
+            "keyVaultName": "[if(variables('keyVaultEnabled'), last(variables('keyVaultParts')), '')]",
+            "aiServicesDnsZoneName": "privatelink.services.ai.azure.com",
+            "openAiDnsZoneName": "privatelink.openai.azure.com",
+            "cognitiveServicesDnsZoneName": "privatelink.cognitiveservices.azure.com",
+            "aiSearchDnsZoneName": "privatelink.search.windows.net",
+            "storageDnsZoneName": "[format('privatelink.blob.{0}', environment().suffixes.storage)]",
+            "cosmosDBDnsZoneName": "privatelink.documents.azure.com",
+            "fabricDnsZoneName": "privatelink.fabric.microsoft.com",
+            "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+            "dnsZoneEntries": "[items(variables('effectiveDnsZones'))]",
+            "dnsZoneKeys": "[map(variables('dnsZoneEntries'), lambda('e', lambdaVariables('e').key))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', parameters('aiAccountName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', parameters('aiAccountName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiAccountName'))]",
+                      "groupIds": [
+                        "account"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', parameters('aiSearchName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', parameters('aiSearchName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('aiSearchSubscriptionId'), parameters('aiSearchResourceGroupName')), 'Microsoft.Search/searchServices', parameters('aiSearchName'))]",
+                      "groupIds": [
+                        "searchService"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', parameters('storageName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', parameters('storageName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('storageAccountSubscriptionId'), parameters('storageAccountResourceGroupName')), 'Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+                      "groupIds": [
+                        "blob"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', parameters('cosmosDBName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', parameters('cosmosDBName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('cosmosDBSubscriptionId'), parameters('cosmosDBResourceGroupName')), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName'))]",
+                      "groupIds": [
+                        "Sql"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "condition": "[variables('fabricPassedIn')]",
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-fabric-private-endpoint', variables('fabricWorkspaceName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', variables('fabricWorkspaceName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[parameters('fabricWorkspaceResourceId')]",
+                      "groupIds": [
+                        "Fabric"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "condition": "[variables('keyVaultEnabled')]",
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', variables('keyVaultName'))]",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "subnet": {
+                  "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('peSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', variables('keyVaultName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[parameters('keyVaultResourceId')]",
+                      "groupIds": [
+                        "vault"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', parameters('aiAccountName')), format('{0}-dns-group', parameters('aiAccountName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-aiserv-config', parameters('aiAccountName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('aiServicesDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  },
+                  {
+                    "name": "[format('{0}-dns-openai-config', parameters('aiAccountName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('openAiDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  },
+                  {
+                    "name": "[format('{0}-dns-cogserv-config', parameters('aiAccountName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('cognitiveServicesDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', parameters('aiAccountName')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('cognitiveServicesDnsZoneName'))].key, '.', '-'), parameters('suffix')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('openAiDnsZoneName'))].key, '.', '-'), parameters('suffix')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('aiServicesDnsZoneName'))].key, '.', '-'), parameters('suffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', parameters('aiSearchName')), format('{0}-dns-group', parameters('aiSearchName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', parameters('aiSearchName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('aiSearchDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', parameters('aiSearchName')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('aiSearchDnsZoneName'))].key, '.', '-'), parameters('suffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', parameters('storageName')), format('{0}-dns-group', parameters('storageName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', parameters('storageName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('storageDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('storageDnsZoneName'))].key, '.', '-'), parameters('suffix')))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', parameters('storageName')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', parameters('cosmosDBName')), format('{0}-dns-group', parameters('cosmosDBName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', parameters('cosmosDBName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('cosmosDBDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', parameters('cosmosDBName')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('cosmosDBDnsZoneName'))].key, '.', '-'), parameters('suffix')))]"
+              ]
+            },
+            {
+              "condition": "[variables('fabricPassedIn')]",
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-fabric-private-endpoint', variables('fabricWorkspaceName')), format('{0}-dns-group', variables('fabricWorkspaceName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', variables('fabricWorkspaceName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[if(variables('fabricPassedIn'), reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('fabricDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value, '')]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('fabricDnsZoneName'))].key, '.', '-'), parameters('suffix')))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-fabric-private-endpoint', variables('fabricWorkspaceName')))]"
+              ]
+            },
+            {
+              "condition": "[variables('keyVaultEnabled')]",
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', variables('keyVaultName')), format('{0}-dns-group', variables('keyVaultName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', variables('keyVaultName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[if(variables('keyVaultEnabled'), reference(resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('keyVaultDnsZoneName'))].key, '.', '-'), parameters('suffix'))), '2025-04-01').outputs.zoneId.value, '')]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[indexOf(variables('dnsZoneKeys'), variables('keyVaultDnsZoneName'))].key, '.', '-'), parameters('suffix')))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', variables('keyVaultName')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "dnsZones",
+                "count": "[length(variables('dnsZoneEntries'))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "[format('dns-{0}-{1}', replace(variables('dnsZoneEntries')[copyIndex()].key, '.', '-'), parameters('suffix'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "zoneName": {
+                    "value": "[variables('dnsZoneEntries')[copyIndex()].key]"
+                  },
+                  "existingResourceGroup": {
+                    "value": "[coalesce(tryGet(variables('dnsZoneEntries')[copyIndex()].value, 'resourceGroup'), '')]"
+                  },
+                  "existingSubscriptionId": {
+                    "value": "[coalesce(tryGet(variables('dnsZoneEntries')[copyIndex()].value, 'subscriptionId'), '')]"
+                  },
+                  "vnetId": {
+                    "value": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('vnetSubscriptionId'), parameters('vnetResourceGroupName')), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+                  },
+                  "suffix": {
+                    "value": "[parameters('suffix')]"
+                  },
+                  "enabled": "[if(equals(variables('dnsZoneEntries')[copyIndex()].key, variables('fabricDnsZoneName')), createObject('value', variables('fabricPassedIn')), if(equals(variables('dnsZoneEntries')[copyIndex()].key, variables('keyVaultDnsZoneName')), createObject('value', variables('keyVaultEnabled')), createObject('value', true())))]"
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.47.16.16243",
+                      "templateHash": "8798851409515239607"
+                    }
+                  },
+                  "parameters": {
+                    "zoneName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Fully-qualified DNS zone name (e.g. privatelink.openai.azure.com)."
+                      }
+                    },
+                    "existingResourceGroup": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Resource group of an existing zone. Empty means create the zone in this RG."
+                      }
+                    },
+                    "existingSubscriptionId": {
+                      "type": "string",
+                      "defaultValue": "",
+                      "metadata": {
+                        "description": "Subscription ID of an existing zone. Empty defaults to the current subscription. Only used when existingResourceGroup is non-empty."
+                      }
+                    },
+                    "vnetId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "ARM ID of the VNet to link the zone to."
+                      }
+                    },
+                    "suffix": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Suffix used to make the vnet-link name unique."
+                      }
+                    },
+                    "enabled": {
+                      "type": "bool",
+                      "defaultValue": true,
+                      "metadata": {
+                        "description": "Disable the entire module (zone, link, output). Used to skip optional zones."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "shouldCreate": "[and(parameters('enabled'), empty(parameters('existingResourceGroup')))]",
+                    "shouldReference": "[and(parameters('enabled'), not(empty(parameters('existingResourceGroup'))))]",
+                    "effectiveExistingSubscriptionId": "[if(empty(parameters('existingSubscriptionId')), subscription().subscriptionId, parameters('existingSubscriptionId'))]"
+                  },
+                  "resources": [
+                    {
+                      "condition": "[variables('shouldCreate')]",
+                      "type": "Microsoft.Network/privateDnsZones",
+                      "apiVersion": "2020-06-01",
+                      "name": "[parameters('zoneName')]",
+                      "location": "global"
+                    },
+                    {
+                      "condition": "[variables('shouldCreate')]",
+                      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                      "apiVersion": "2024-06-01",
+                      "name": "[format('{0}/{1}', parameters('zoneName'), format('{0}-{1}-link', replace(parameters('zoneName'), '.', '-'), parameters('suffix')))]",
+                      "location": "global",
+                      "properties": {
+                        "virtualNetwork": {
+                          "id": "[parameters('vnetId')]"
+                        },
+                        "registrationEnabled": false
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "zoneId": {
+                      "type": "string",
+                      "value": "[if(parameters('enabled'), if(variables('shouldCreate'), resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName')), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('effectiveExistingSubscriptionId'), parameters('existingResourceGroup')), 'Microsoft.Network/privateDnsZones', parameters('zoneName'))), '')]"
+                    },
+                    "zoneName": {
+                      "type": "string",
+                      "value": "[parameters('zoneName')]"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('key-vault-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "condition": "[parameters('enableContainerRegistry')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('acr-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "acrName": {
+            "value": "[variables('acrName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "peSubnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.peSubnetId.value]"
+          },
+          "vnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.virtualNetworkId.value]"
+          },
+          "suffix": {
+            "value": "[variables('uniqueSuffix')]"
+          },
+          "existingDnsZoneResourceGroup": "[if(empty(parameters('existingDnsZones')['privatelink.azurecr.io'].resourceGroup), createObject('value', resourceGroup().name), createObject('value', parameters('existingDnsZones')['privatelink.azurecr.io'].resourceGroup))]",
+          "dnsZonesSubscriptionId": "[if(empty(parameters('existingDnsZones')['privatelink.azurecr.io'].subscriptionId), createObject('value', subscription().subscriptionId), createObject('value', parameters('existingDnsZones')['privatelink.azurecr.io'].subscriptionId))]",
+          "developerIpCidr": {
+            "value": "[parameters('developerIpCidr')]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "3104609443993917100"
+            }
+          },
+          "parameters": {
+            "acrName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Azure Container Registry"
+              }
+            },
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the ACR"
+              }
+            },
+            "peSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Private Endpoint subnet"
+              }
+            },
+            "vnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Virtual Network"
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Suffix for unique resource names"
+              }
+            },
+            "existingDnsZoneResourceGroup": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Resource group name for existing ACR DNS zone. Empty string means create a new zone."
+              }
+            },
+            "dnsZonesSubscriptionId": {
+              "type": "string",
+              "defaultValue": "[subscription().subscriptionId]",
+              "metadata": {
+                "description": "Subscription ID where existing private DNS zones are located."
+              }
+            },
+            "developerIpCidr": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional developer IP CIDR to allowlist for ACR push access (e.g., 203.0.113.0/26 or 10.0.0.0/16). When empty, public access remains disabled."
+              }
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Principal ID of the project managed identity to grant AcrPull role. When empty, no role assignment is created."
+              }
+            }
+          },
+          "variables": {
+            "acrDnsZoneName": "privatelink.azurecr.io",
+            "acrDnsZoneId": "[if(empty(parameters('existingDnsZoneResourceGroup')), resourceId('Microsoft.Network/privateDnsZones', variables('acrDnsZoneName')), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('dnsZonesSubscriptionId'), parameters('existingDnsZoneResourceGroup')), 'Microsoft.Network/privateDnsZones', variables('acrDnsZoneName')))]",
+            "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2023-07-01",
+              "name": "[parameters('acrName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Premium"
+              },
+              "properties": {
+                "adminUserEnabled": false,
+                "publicNetworkAccess": "[if(empty(parameters('developerIpCidr')), 'Disabled', 'Enabled')]",
+                "networkRuleBypassOptions": "AzureServices",
+                "networkRuleSet": "[if(empty(parameters('developerIpCidr')), null(), createObject('defaultAction', 'Deny', 'ipRules', createArray(createObject('action', 'Allow', 'value', parameters('developerIpCidr')))))]"
+              }
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}-private-endpoint', parameters('acrName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "subnet": {
+                  "id": "[parameters('peSubnetId')]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-private-link-service-connection', parameters('acrName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]",
+                      "groupIds": [
+                        "registry"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
+              ]
+            },
+            {
+              "condition": "[empty(parameters('existingDnsZoneResourceGroup'))]",
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2020-06-01",
+              "name": "[variables('acrDnsZoneName')]",
+              "location": "global"
+            },
+            {
+              "condition": "[empty(parameters('existingDnsZoneResourceGroup'))]",
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', variables('acrDnsZoneName'), format('acr-{0}-link', parameters('suffix')))]",
+              "location": "global",
+              "properties": {
+                "virtualNetwork": {
+                  "id": "[parameters('vnetId')]"
+                },
+                "registrationEnabled": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('acrDnsZoneName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('{0}-private-endpoint', parameters('acrName')), format('{0}-dns-group', parameters('acrName')))]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-dns-config', parameters('acrName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[variables('acrDnsZoneId')]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', variables('acrDnsZoneName'), format('acr-{0}-link', parameters('suffix')))]",
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('acrDnsZoneName'))]",
+                "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-private-endpoint', parameters('acrName')))]"
+              ]
+            },
+            {
+              "condition": "[not(empty(parameters('projectPrincipalId')))]",
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]",
+              "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), parameters('projectPrincipalId'), variables('acrPullRoleId'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('acrPullRoleId'))]",
+                "principalId": "[parameters('projectPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "acrId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Azure Container Registry"
+              },
+              "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
+            },
+            "acrName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Azure Container Registry"
+              },
+              "value": "[parameters('acrName')]"
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "metadata": {
+                "description": "Login server URL of the Azure Container Registry"
+              },
+              "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), '2023-07-01').loginServer]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('app-insights-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "suffix": {
+            "value": "[variables('uniqueSuffix')]"
+          },
+          "aiAccountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))), '2025-04-01').outputs.accountName.value]"
+          },
+          "disablePublicIngestion": {
+            "value": true
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "14219650682116438187"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the tracing resources."
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Suffix for unique resource names (the template uniqueSuffix)."
+              }
+            },
+            "aiAccountName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Foundry (AI Services) account to connect Application Insights to."
+              }
+            },
+            "disablePublicIngestion": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "When true, disable public ingestion (reach Application Insights privately via AMPLS). Set false for public templates."
+              }
+            },
+            "logAnalyticsName": {
+              "type": "string",
+              "defaultValue": "[format('law-tracing-{0}', parameters('suffix'))]",
+              "metadata": {
+                "description": "Name of the Log Analytics workspace to create."
+              }
+            },
+            "appInsightsName": {
+              "type": "string",
+              "defaultValue": "[format('appi-tracing-{0}', parameters('suffix'))]",
+              "metadata": {
+                "description": "Name of the Application Insights component to create."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2023-09-01",
+              "name": "[parameters('logAnalyticsName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30
+              }
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[parameters('appInsightsName')]",
+              "location": "[parameters('location')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]",
+                "publicNetworkAccessForIngestion": "[if(parameters('disablePublicIngestion'), 'Disabled', 'Enabled')]",
+                "publicNetworkAccessForQuery": "Enabled"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}', parameters('aiAccountName'), format('{0}-appinsights', parameters('aiAccountName')))]",
+              "properties": {
+                "category": "AppInsights",
+                "target": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
+                "authType": "ApiKey",
+                "isSharedToAll": true,
+                "credentials": {
+                  "key": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
+                },
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "appInsightsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Application Insights component."
+              },
+              "value": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+            },
+            "appInsightsAppId": {
+              "type": "string",
+              "metadata": {
+                "description": "Application ID of the Application Insights component (for trace queries)."
+              },
+              "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').AppId]"
+            },
+            "logAnalyticsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Log Analytics workspace backing Application Insights."
+              },
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+            },
+            "appInsightsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Application Insights component."
+              },
+              "value": "[parameters('appInsightsName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('monitor-pls-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "suffix": {
+            "value": "[variables('uniqueSuffix')]"
+          },
+          "appInsightsId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('app-insights-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.appInsightsId.value]"
+          },
+          "logAnalyticsId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('app-insights-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.logAnalyticsId.value]"
+          },
+          "vnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.virtualNetworkId.value]"
+          },
+          "peSubnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix'))), '2025-04-01').outputs.peSubnetId.value]"
+          },
+          "existingDnsZones": {
+            "value": "[parameters('existingMonitorDnsZones')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "16460141123925717953"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the private endpoint."
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Suffix for unique resource names (the template uniqueSuffix)."
+              }
+            },
+            "appInsightsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Application Insights component to scope into the AMPLS."
+              }
+            },
+            "logAnalyticsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Log Analytics workspace to scope into the AMPLS."
+              }
+            },
+            "vnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Virtual Network."
+              }
+            },
+            "peSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Private Endpoint subnet."
+              }
+            },
+            "existingDnsZones": {
+              "type": "object",
+              "defaultValue": {
+                "privatelink.monitor.azure.com": {
+                  "subscriptionId": "",
+                  "resourceGroup": ""
+                },
+                "privatelink.oms.opinsights.azure.com": {
+                  "subscriptionId": "",
+                  "resourceGroup": ""
+                },
+                "privatelink.ods.opinsights.azure.com": {
+                  "subscriptionId": "",
+                  "resourceGroup": ""
+                },
+                "privatelink.agentsvc.azure-automation.net": {
+                  "subscriptionId": "",
+                  "resourceGroup": ""
+                }
+              },
+              "metadata": {
+                "description": "Map of Azure Monitor private DNS zone name to an existing zone subscription/resource group. Empty strings for a zone mean the module creates and links it in this resource group."
+              }
+            }
+          },
+          "variables": {
+            "copy": [
+              {
+                "name": "existingDnsZoneResourceGroups",
+                "count": "[length(variables('monitorDnsZoneNames'))]",
+                "input": "[parameters('existingDnsZones')[variables('monitorDnsZoneNames')[copyIndex('existingDnsZoneResourceGroups')]].resourceGroup]"
+              },
+              {
+                "name": "existingDnsZoneSubscriptionIds",
+                "count": "[length(variables('monitorDnsZoneNames'))]",
+                "input": "[if(empty(parameters('existingDnsZones')[variables('monitorDnsZoneNames')[copyIndex('existingDnsZoneSubscriptionIds')]].subscriptionId), subscription().subscriptionId, parameters('existingDnsZones')[variables('monitorDnsZoneNames')[copyIndex('existingDnsZoneSubscriptionIds')]].subscriptionId)]"
+              },
+              {
+                "name": "monitorDnsZoneIds",
+                "count": "[length(variables('monitorDnsZoneNames'))]",
+                "input": "[if(empty(variables('existingDnsZoneResourceGroups')[copyIndex('monitorDnsZoneIds')]), resourceId('Microsoft.Network/privateDnsZones', variables('monitorDnsZoneNames')[copyIndex('monitorDnsZoneIds')]), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('existingDnsZoneSubscriptionIds')[copyIndex('monitorDnsZoneIds')], variables('existingDnsZoneResourceGroups')[copyIndex('monitorDnsZoneIds')]), 'Microsoft.Network/privateDnsZones', variables('monitorDnsZoneNames')[copyIndex('monitorDnsZoneIds')]))]"
+              }
+            ],
+            "monitorDnsZoneNames": [
+              "privatelink.monitor.azure.com",
+              "privatelink.oms.opinsights.azure.com",
+              "privatelink.ods.opinsights.azure.com",
+              "privatelink.agentsvc.azure-automation.net"
+            ]
+          },
+          "resources": [
+            {
+              "type": "microsoft.insights/privateLinkScopes",
+              "apiVersion": "2021-07-01-preview",
+              "name": "[format('ampls-tracing-{0}', parameters('suffix'))]",
+              "location": "global",
+              "properties": {
+                "accessModeSettings": {
+                  "ingestionAccessMode": "PrivateOnly",
+                  "queryAccessMode": "Open"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Insights/privateLinkScopes/scopedResources",
+              "apiVersion": "2021-07-01-preview",
+              "name": "[format('{0}/{1}', format('ampls-tracing-{0}', parameters('suffix')), 'appinsights-scoped')]",
+              "properties": {
+                "linkedResourceId": "[parameters('appInsightsId')]"
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/privateLinkScopes', format('ampls-tracing-{0}', parameters('suffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/privateLinkScopes/scopedResources",
+              "apiVersion": "2021-07-01-preview",
+              "name": "[format('{0}/{1}', format('ampls-tracing-{0}', parameters('suffix')), 'law-scoped')]",
+              "properties": {
+                "linkedResourceId": "[parameters('logAnalyticsId')]"
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/privateLinkScopes', format('ampls-tracing-{0}', parameters('suffix')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "monitorDnsZones",
+                "count": "[length(variables('monitorDnsZoneNames'))]"
+              },
+              "condition": "[empty(variables('existingDnsZoneResourceGroups')[copyIndex()])]",
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2020-06-01",
+              "name": "[variables('monitorDnsZoneNames')[copyIndex()]]",
+              "location": "global"
+            },
+            {
+              "copy": {
+                "name": "monitorDnsZoneLinks",
+                "count": "[length(variables('monitorDnsZoneNames'))]"
+              },
+              "condition": "[empty(variables('existingDnsZoneResourceGroups')[copyIndex()])]",
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', variables('monitorDnsZoneNames')[copyIndex()], format('{0}-link', replace(variables('monitorDnsZoneNames')[copyIndex()], '.', '-')))]",
+              "location": "global",
+              "properties": {
+                "virtualNetwork": {
+                  "id": "[parameters('vnetId')]"
+                },
+                "registrationEnabled": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('monitorDnsZoneNames')[copyIndex()])]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[format('ampls-tracing-{0}-pe', parameters('suffix'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "subnet": {
+                  "id": "[parameters('peSubnetId')]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "ampls-connection",
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('microsoft.insights/privateLinkScopes', format('ampls-tracing-{0}', parameters('suffix')))]",
+                      "groupIds": [
+                        "azuremonitor"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/privateLinkScopes', format('ampls-tracing-{0}', parameters('suffix')))]",
+                "[resourceId('Microsoft.Insights/privateLinkScopes/scopedResources', format('ampls-tracing-{0}', parameters('suffix')), 'appinsights-scoped')]",
+                "[resourceId('Microsoft.Insights/privateLinkScopes/scopedResources', format('ampls-tracing-{0}', parameters('suffix')), 'law-scoped')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('ampls-tracing-{0}-pe', parameters('suffix')), 'ampls-dns')]",
+              "properties": {
+                "copy": [
+                  {
+                    "name": "privateDnsZoneConfigs",
+                    "count": "[length(variables('monitorDnsZoneNames'))]",
+                    "input": {
+                      "name": "[replace(variables('monitorDnsZoneNames')[copyIndex('privateDnsZoneConfigs')], '.', '-')]",
+                      "properties": {
+                        "privateDnsZoneId": "[variables('monitorDnsZoneIds')[copyIndex('privateDnsZoneConfigs')]]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', format('ampls-tracing-{0}-pe', parameters('suffix')))]",
+                "monitorDnsZoneLinks"
+              ]
+            }
+          ],
+          "outputs": {
+            "amplsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Azure Monitor Private Link Scope."
+              },
+              "value": "[resourceId('microsoft.insights/privateLinkScopes', format('ampls-tracing-{0}', parameters('suffix')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('app-insights-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('vnet-{0}-{1}-deployment', variables('trimVnetName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "projectName": {
+            "value": "[variables('projectName')]"
+          },
+          "projectDescription": {
+            "value": "[parameters('projectDescription')]"
+          },
+          "displayName": {
+            "value": "[parameters('displayName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "aiSearchName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchName.value]"
+          },
+          "aiSearchServiceResourceGroupName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchServiceResourceGroupName.value]"
+          },
+          "aiSearchServiceSubscriptionId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchServiceSubscriptionId.value]"
+          },
+          "cosmosDBName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBName.value]"
+          },
+          "cosmosDBSubscriptionId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBSubscriptionId.value]"
+          },
+          "cosmosDBResourceGroupName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBResourceGroupName.value]"
+          },
+          "azureStorageName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageName.value]"
+          },
+          "azureStorageSubscriptionId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageSubscriptionId.value]"
+          },
+          "azureStorageResourceGroupName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageResourceGroupName.value]"
+          },
+          "accountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))), '2025-04-01').outputs.accountName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "12330575382998309704"
+            }
+          },
+          "parameters": {
+            "accountName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "projectName": {
+              "type": "string"
+            },
+            "projectDescription": {
+              "type": "string"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "aiSearchName": {
+              "type": "string"
+            },
+            "aiSearchServiceResourceGroupName": {
+              "type": "string"
+            },
+            "aiSearchServiceSubscriptionId": {
+              "type": "string"
+            },
+            "cosmosDBName": {
+              "type": "string"
+            },
+            "cosmosDBSubscriptionId": {
+              "type": "string"
+            },
+            "cosmosDBResourceGroupName": {
+              "type": "string"
+            },
+            "azureStorageName": {
+              "type": "string"
+            },
+            "azureStorageSubscriptionId": {
+              "type": "string"
+            },
+            "azureStorageResourceGroupName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('projectName'), parameters('cosmosDBName'))]",
+              "properties": {
+                "category": "CosmosDB",
+                "target": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('cosmosDBSubscriptionId'), parameters('cosmosDBResourceGroupName')), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName')), '2024-12-01-preview').documentEndpoint]",
+                "authType": "AAD",
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('cosmosDBSubscriptionId'), parameters('cosmosDBResourceGroupName')), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName'))]",
+                  "location": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('cosmosDBSubscriptionId'), parameters('cosmosDBResourceGroupName')), 'Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName')), '2024-12-01-preview', 'full').location]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('projectName'), parameters('azureStorageName'))]",
+              "properties": {
+                "category": "AzureStorageAccount",
+                "target": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('azureStorageSubscriptionId'), parameters('azureStorageResourceGroupName')), 'Microsoft.Storage/storageAccounts', parameters('azureStorageName')), '2023-05-01').primaryEndpoints.blob]",
+                "authType": "AAD",
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('azureStorageSubscriptionId'), parameters('azureStorageResourceGroupName')), 'Microsoft.Storage/storageAccounts', parameters('azureStorageName'))]",
+                  "location": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('azureStorageSubscriptionId'), parameters('azureStorageResourceGroupName')), 'Microsoft.Storage/storageAccounts', parameters('azureStorageName')), '2023-05-01', 'full').location]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('projectName'), parameters('aiSearchName'))]",
+              "properties": {
+                "category": "CognitiveSearch",
+                "target": "[format('https://{0}.search.windows.net', parameters('aiSearchName'))]",
+                "authType": "AAD",
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('aiSearchServiceSubscriptionId'), parameters('aiSearchServiceResourceGroupName')), 'Microsoft.Search/searchServices', parameters('aiSearchName'))]",
+                  "location": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('aiSearchServiceSubscriptionId'), parameters('aiSearchServiceResourceGroupName')), 'Microsoft.Search/searchServices', parameters('aiSearchName')), '2024-06-01-preview', 'full').location]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}', parameters('accountName'), parameters('projectName'))]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "description": "[parameters('projectDescription')]",
+                "displayName": "[parameters('displayName')]"
+              }
+            }
+          ],
+          "outputs": {
+            "projectName": {
+              "type": "string",
+              "value": "[parameters('projectName')]"
+            },
+            "projectId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName'))]"
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName')), '2025-04-01-preview', 'full').identity.principalId]"
+            },
+            "projectWorkspaceId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName')), '2025-04-01-preview').internalId]"
+            },
+            "cosmosDBConnection": {
+              "type": "string",
+              "value": "[parameters('cosmosDBName')]"
+            },
+            "azureStorageConnection": {
+              "type": "string",
+              "value": "[parameters('azureStorageName')]"
+            },
+            "aiSearchConnection": {
+              "type": "string",
+              "value": "[parameters('aiSearchName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('format-project-workspace-id-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "projectWorkspaceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectWorkspaceId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "3969139303633004263"
+            }
+          },
+          "parameters": {
+            "projectWorkspaceId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "part1": "[substring(parameters('projectWorkspaceId'), 0, 8)]",
+            "part2": "[substring(parameters('projectWorkspaceId'), 8, 4)]",
+            "part3": "[substring(parameters('projectWorkspaceId'), 12, 4)]",
+            "part4": "[substring(parameters('projectWorkspaceId'), 16, 4)]",
+            "part5": "[substring(parameters('projectWorkspaceId'), 20, 12)]",
+            "formattedGuid": "[format('{0}-{1}-{2}-{3}-{4}', variables('part1'), variables('part2'), variables('part3'), variables('part4'), variables('part5'))]"
+          },
+          "resources": [],
+          "outputs": {
+            "projectWorkspaceIdGuid": {
+              "type": "string",
+              "value": "[variables('formattedGuid')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('storage-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('azureStorageSubscriptionId')]",
+      "resourceGroup": "[variables('azureStorageResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "azureStorageName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageName.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "10739901510940933725"
+            }
+          },
+          "parameters": {
+            "azureStorageName": {
+              "type": "string"
+            },
+            "projectPrincipalId": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('azureStorageName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'), resourceId('Microsoft.Storage/storageAccounts', parameters('azureStorageName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('cosmos-account-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('cosmosDBSubscriptionId')]",
+      "resourceGroup": "[variables('cosmosDBResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "cosmosDBName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBName.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "1209683400754844194"
+            }
+          },
+          "parameters": {
+            "cosmosDBName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Cosmos DB resource"
+              }
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the AI project"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), resourceId('Microsoft.Authorization/roleDefinitions', '230815da-be43-4aae-9cb4-875f7bd000aa'), resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('cosmosDBName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '230815da-be43-4aae-9cb4-875f7bd000aa')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('ai-search-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('aiSearchServiceSubscriptionId')]",
+      "resourceGroup": "[variables('aiSearchServiceResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiSearchName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchName.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "16246039695441079039"
+            }
+          },
+          "parameters": {
+            "aiSearchName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI Search resource"
+              }
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the AI project"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Search/searchServices', parameters('aiSearchName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), resourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7'), resourceId('Microsoft.Search/searchServices', parameters('aiSearchName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Search/searchServices', parameters('aiSearchName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), resourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0'), resourceId('Microsoft.Search/searchServices', parameters('aiSearchName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('capabilityHost-configuration-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "accountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix'))), '2025-04-01').outputs.accountName.value]"
+          },
+          "projectName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectName.value]"
+          },
+          "cosmosDBConnection": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBConnection.value]"
+          },
+          "azureStorageConnection": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageConnection.value]"
+          },
+          "aiSearchConnection": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.aiSearchConnection.value]"
+          },
+          "projectCapHost": {
+            "value": "[parameters('projectCapHost')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "9174184516106672587"
+            }
+          },
+          "parameters": {
+            "cosmosDBConnection": {
+              "type": "string"
+            },
+            "azureStorageConnection": {
+              "type": "string"
+            },
+            "aiSearchConnection": {
+              "type": "string"
+            },
+            "projectName": {
+              "type": "string"
+            },
+            "accountName": {
+              "type": "string"
+            },
+            "projectCapHost": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "threadConnections": [
+              "[format('{0}', parameters('cosmosDBConnection'))]"
+            ],
+            "storageConnections": [
+              "[format('{0}', parameters('azureStorageConnection'))]"
+            ],
+            "vectorStoreConnections": [
+              "[format('{0}', parameters('aiSearchConnection'))]"
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/capabilityHosts",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('accountName'), parameters('projectName'), parameters('projectCapHost'))]",
+              "properties": {
+                "capabilityHostKind": "Agents",
+                "vectorStoreConnections": "[variables('vectorStoreConnections')]",
+                "storageConnections": "[variables('storageConnections')]",
+                "threadStorageConnections": "[variables('threadConnections')]"
+              }
+            }
+          ],
+          "outputs": {
+            "projectCapHost": {
+              "type": "string",
+              "value": "[parameters('projectCapHost')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('accountName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('aiSearchServiceSubscriptionId'), variables('aiSearchServiceResourceGroupName')), 'Microsoft.Resources/deployments', format('ai-search-ra-{0}-deployment', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('cosmosDBSubscriptionId'), variables('cosmosDBResourceGroupName')), 'Microsoft.Resources/deployments', format('cosmos-account-ra-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-private-endpoint', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('azureStorageSubscriptionId'), variables('azureStorageResourceGroupName')), 'Microsoft.Resources/deployments', format('storage-ra-{0}-deployment', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('storage-containers-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('azureStorageSubscriptionId')]",
+      "resourceGroup": "[variables('azureStorageResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiProjectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          },
+          "storageName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.azureStorageName.value]"
+          },
+          "workspaceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('format-project-workspace-id-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.projectWorkspaceIdGuid.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "10980689918866139796"
+            }
+          },
+          "parameters": {
+            "storageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the storage account"
+              }
+            },
+            "aiProjectPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the AI Project"
+              }
+            },
+            "workspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Workspace Id of the AI Project"
+              }
+            }
+          },
+          "variables": {
+            "conditionStr": "[format('((!(ActionMatches{{''Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read''}})  AND  !(ActionMatches{{''Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action''}}) AND  !(ActionMatches{{''Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write''}}) ) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase ''{0}'' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase ''*-azureml-agent''))', parameters('workspaceId'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+              "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('storageName')), parameters('aiProjectPrincipalId'), resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'), parameters('workspaceId'))]",
+              "properties": {
+                "principalId": "[parameters('aiProjectPrincipalId')]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]",
+                "principalType": "ServicePrincipal",
+                "conditionVersion": "2.0",
+                "condition": "[variables('conditionStr')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('capabilityHost-configuration-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('format-project-workspace-id-{0}-deployment', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('azureStorageSubscriptionId'), variables('azureStorageResourceGroupName')), 'Microsoft.Resources/deployments', format('storage-ra-{0}-deployment', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('cosmos-containers-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "subscriptionId": "[variables('cosmosDBSubscriptionId')]",
+      "resourceGroup": "[variables('cosmosDBResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "cosmosAccountName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.cosmosDBName.value]"
+          },
+          "projectWorkspaceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('format-project-workspace-id-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.projectWorkspaceIdGuid.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "5703420574989287601"
+            }
+          },
+          "parameters": {
+            "cosmosAccountName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI Search resource"
+              }
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Project name"
+              }
+            },
+            "projectWorkspaceId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "roleDefinitionId": "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', parameters('cosmosAccountName'), '00000000-0000-0000-0000-000000000002')]",
+            "accountScope": "[format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DocumentDB/databaseAccounts/{2}', subscription().subscriptionId, resourceGroup().name, parameters('cosmosAccountName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments",
+              "apiVersion": "2022-05-15",
+              "name": "[format('{0}/{1}', parameters('cosmosAccountName'), guid(parameters('projectWorkspaceId'), parameters('cosmosAccountName'), variables('roleDefinitionId'), parameters('projectPrincipalId')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[variables('roleDefinitionId')]",
+                "scope": "[variables('accountScope')]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('capabilityHost-configuration-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('dependencies-{0}-deployment', variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('format-project-workspace-id-{0}-deployment', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('azureStorageSubscriptionId'), variables('azureStorageResourceGroupName')), 'Microsoft.Resources/deployments', format('storage-containers-ra-{0}-deployment', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('app-insights-ra-{0}-deployment', variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appInsightsName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('app-insights-{0}-deployment', variables('uniqueSuffix'))), '2025-04-01').outputs.appInsightsName.value]"
+          },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix'))), '2025-04-01').outputs.projectPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.47.16.16243",
+              "templateHash": "1469558936015874740"
+            }
+          },
+          "parameters": {
+            "appInsightsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Application Insights component to grant access on."
+              }
+            },
+            "projectPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal (object) ID of the project managed identity."
+              }
+            },
+            "roleDefinitionGuids": {
+              "type": "array",
+              "defaultValue": [
+                "73c42c96-874c-492b-b04d-ab87d138a893",
+                "dbc9c667-e97f-4491-aee6-90b9cf960190"
+              ],
+              "metadata": {
+                "description": "Built-in role definition GUIDs to assign. Defaults to Log Analytics Reader + Privileged Monitoring Data Reader (the latter is required to query GenAI content)."
+              }
+            }
+          },
+          "resources": [
+            {
+              "copy": {
+                "name": "appInsightsRoleAssignments",
+                "count": "[length(parameters('roleDefinitionGuids'))]"
+              },
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
+              "name": "[guid(parameters('projectPrincipalId'), parameters('roleDefinitionGuids')[copyIndex()], resourceId('Microsoft.Insights/components', parameters('appInsightsName')))]",
+              "properties": {
+                "principalId": "[parameters('projectPrincipalId')]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('roleDefinitionGuids')[copyIndex()])]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}-{1}-deployment', variables('projectName'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('app-insights-{0}-deployment', variables('uniqueSuffix')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "privateCaKeyVaultName": {
+      "type": "string",
+      "value": "[variables('effectiveKeyVaultName')]"
+    },
+    "privateCaKeyVaultResourceId": {
+      "type": "string",
+      "value": "[variables('effectiveKeyVaultResourceId')]"
+    }
+  }
+}

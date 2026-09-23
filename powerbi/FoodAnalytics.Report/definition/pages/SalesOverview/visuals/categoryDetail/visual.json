@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "categoryDetail",
+  "position": {
+    "x": 16,
+    "y": 428,
+    "z": 7,
+    "width": 1248,
+    "height": 276,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "category"
+                }
+              },
+              "queryRef": "Sales Analytics.category",
+              "nativeQueryRef": "category"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "channel"
+                }
+              },
+              "queryRef": "Sales Analytics.channel",
+              "nativeQueryRef": "channel"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "Sales Volume (kg)"
+                }
+              },
+              "queryRef": "Sales Analytics.Sales Volume (kg)",
+              "nativeQueryRef": "Sales Volume (kg)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "Revenue (EUR)"
+                }
+              },
+              "queryRef": "Sales Analytics.Revenue (EUR)",
+              "nativeQueryRef": "Revenue (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "Gross Margin (EUR)"
+                }
+              },
+              "queryRef": "Sales Analytics.Gross Margin (EUR)",
+              "nativeQueryRef": "Gross Margin (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Analytics"
+                    }
+                  },
+                  "Property": "Gross Margin %"
+                }
+              },
+              "queryRef": "Sales Analytics.Gross Margin %",
+              "nativeQueryRef": "Gross Margin %"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Category and Channel Detail'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

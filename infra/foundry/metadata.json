@@ -1,0 +1,37 @@
+{
+    "name": "Hybrid Private Resources Agent Setup",
+    "description": "Azure AI Foundry with private backend resources, tools behind a VNet, and a private Key Vault ready for customer CA certificate trust.",
+    "version": "1.1.0",
+    "keywords": [
+        "hybrid",
+        "private-endpoints",
+        "data-proxy",
+        "mcp",
+        "ai-search",
+        "portal-access",
+        "key-vault",
+        "private-ca"
+    ],
+    "architecture": {
+        "ai_services_access": "public",
+        "backend_resources": "private",
+        "data_proxy": "enabled",
+        "portal_compatible": true
+    },
+    "prerequisites": [
+        "Azure subscription with Owner or Contributor role",
+        "Foundry Account Owner role for creating AI Services",
+        "Sufficient quota for gpt-4o-mini model deployment"
+    ],
+    "resources_created": [
+        "Microsoft.CognitiveServices/accounts (AI Services with public access)",
+        "Microsoft.CognitiveServices/accounts/projects",
+        "Microsoft.Search/searchServices (private endpoint)",
+        "Microsoft.DocumentDB/databaseAccounts (private endpoint)",
+        "Microsoft.Storage/storageAccounts (private endpoint)",
+        "Microsoft.KeyVault/vaults (private endpoint)",
+        "Microsoft.Network/virtualNetworks",
+        "Microsoft.Network/privateEndpoints",
+        "Microsoft.Network/privateDnsZones"
+    ]
+}

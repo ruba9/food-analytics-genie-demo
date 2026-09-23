@@ -1,0 +1,112 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus2"
+    },
+    "aiServices": {
+      "value": ""
+    },
+    "modelName": {
+      "value": ""
+    },
+    "modelFormat": {
+      "value": ""
+    },
+    "modelVersion": {
+      "value": ""
+    },
+    "modelSkuName": {
+      "value": ""
+    },
+    "modelCapacity": {
+      "value": 0
+    },
+    "deploymentTimestamp": {
+      "value": ""
+    },
+    "firstProjectName": {
+      "value": ""
+    },
+    "projectDescription": {
+      "value": ""
+    },
+    "displayName": {
+      "value": ""
+    },
+    "vnetName": {
+      "value": ""
+    },
+    "agentSubnetName": {
+      "value": ""
+    },
+    "peSubnetName": {
+      "value": ""
+    },
+    "existingVnetResourceId": {
+      "value": ""
+    },
+    "vnetAddressPrefix": {
+      "value": ""
+    },
+    "agentSubnetPrefix": {
+      "value": ""
+    },
+    "peSubnetPrefix": {
+      "value": ""
+    },
+    "existingAiSearchResourceId": {
+      "value": ""
+    },
+    "existingAzureStorageAccountResourceId": {
+      "value": ""
+    },
+    "existingAzureCosmosDBAccountResourceId": {
+      "value": ""
+    },
+    "existingFabricWorkspaceResourceId": {
+      "value": ""
+    },
+    "enableKeyVault": {
+      "value": true
+    },
+    "keyVaultName": {
+      "value": ""
+    },
+    "existingKeyVaultResourceId": {
+      "value": ""
+    },
+    "existingPeSubnetResourceId": {
+      "value": ""
+    },
+    "existingAgentSubnetResourceId": {
+      "value": ""
+    },
+    "existingMcpSubnetResourceId": {
+      "value": ""
+    },
+    "mcpSubnetName": {
+      "value": ""
+    },
+    "mcpSubnetPrefix": {
+      "value": ""
+    },
+    "projectCapHost": {
+      "value": ""
+    },
+    "existingDnsZones": {
+      "value": {
+        "privatelink.services.ai.azure.com":       { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.openai.azure.com":            { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.cognitiveservices.azure.com": { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.search.windows.net":          { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.blob.core.windows.net":       { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.documents.azure.com":         { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.azurecr.io":                  { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.fabric.microsoft.com":        { "subscriptionId": "", "resourceGroup": "" },
+        "privatelink.vaultcore.azure.net":         { "subscriptionId": "", "resourceGroup": "" }
+      }
+    }
+  }
+}
