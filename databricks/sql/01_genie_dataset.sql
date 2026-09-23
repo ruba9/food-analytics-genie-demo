@@ -157,19 +157,20 @@ GROUP BY
   pl.plant_name;
 
 CREATE OR REPLACE VIEW food_analytics.sales.sales_kpi
-COMMENT 'Canonical all-time dashboard KPI values. Power BI cards and Genie KPI answers must use these rows without recalculating the measures.'
+COMMENT 'Canonical all-time dashboard KPI values, unfiltered by date. Power BI cards and Genie KPI answers must use these rows without recalculating the measures. For any date-filtered or grouped question use sales_analytics instead.'
 AS
-SELECT 'Total Revenue' AS metric_name, CAST(ROUND(SUM(revenue_eur), 2) AS DECIMAL(20,2)) AS metric_value, 'EUR' AS metric_unit
+-- DECIMAL(18,2) stays inside the 19-digit precision Power BI fixed-decimal columns accept.
+SELECT 'Total Revenue' AS metric_name, CAST(ROUND(SUM(revenue_eur), 2) AS DECIMAL(18,2)) AS metric_value, 'EUR' AS metric_unit
 FROM food_analytics.sales.sales_analytics
 UNION ALL
-SELECT 'Total Cost', CAST(ROUND(SUM(cost_eur), 2) AS DECIMAL(20,2)), 'EUR'
+SELECT 'Total Cost', CAST(ROUND(SUM(cost_eur), 2) AS DECIMAL(18,2)), 'EUR'
 FROM food_analytics.sales.sales_analytics
 UNION ALL
-SELECT 'Gross Margin', CAST(ROUND(SUM(gross_margin_eur), 2) AS DECIMAL(20,2)), 'EUR'
+SELECT 'Gross Margin', CAST(ROUND(SUM(gross_margin_eur), 2) AS DECIMAL(18,2)), 'EUR'
 FROM food_analytics.sales.sales_analytics
 UNION ALL
-SELECT 'Sales Volume', CAST(ROUND(SUM(sales_volume_kg), 1) AS DECIMAL(20,2)), 'kg'
+SELECT 'Sales Volume', CAST(ROUND(SUM(sales_volume_kg), 1) AS DECIMAL(18,2)), 'kg'
 FROM food_analytics.sales.sales_analytics
 UNION ALL
-SELECT 'Order Lines', CAST(SUM(order_line_count) AS DECIMAL(20,2)), 'count'
+SELECT 'Order Lines', CAST(SUM(order_line_count) AS DECIMAL(18,2)), 'count'
 FROM food_analytics.sales.sales_analytics;

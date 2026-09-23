@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Total Revenue'"
+                  "Value": "'Total Revenue (all time)'"
                 }
               }
             }

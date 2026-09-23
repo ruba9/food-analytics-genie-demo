@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Calendar Year'"
+                  "Value": "'Calendar Year (filters charts below, not the cards)'"
                 }
               }
             }

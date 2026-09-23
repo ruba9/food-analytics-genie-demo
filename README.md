@@ -281,12 +281,13 @@ The report contains one page:
 
 | Visual | Source |
 | --- | --- |
-| Total Revenue, Gross Margin, Sales Volume, Order Lines cards | `sales_kpi`, one row per metric |
+| Total Revenue, Gross Margin, Sales Volume, Order Lines cards | `sales_kpi`, one row per metric, always all-time |
+| Calendar year slicer | `sales_analytics`, filters the charts only |
 | Revenue by product category | `sales_analytics` |
 | Monthly revenue trend | `sales_analytics` |
 | Category and channel detail table | `sales_analytics` |
 
-The KPI cards deliberately read single rows from `sales_kpi` instead of re-aggregating the fact table. That is what makes a card value and the agent's answer to the same question identical rather than merely similar.
+The KPI cards deliberately read single rows from `sales_kpi` instead of re-aggregating the fact table. That is what makes a card value and the agent's answer to the same question identical rather than merely similar. Because `sales_kpi` holds no date column, the cards do not respond to the year slicer.
 
 ## Validate Private Connectivity
 
@@ -332,13 +333,34 @@ This confirms that the Foundry agent invoked the private Genie MCP endpoint and 
 
 ## Confirm the Agent and Dashboard Agree
 
-To demonstrate the shared metric contract, compare the two surfaces on the same question:
+The KPI cards read `sales_kpi`, which is deliberately unfiltered. The slicer and charts read `sales_analytics`. Compare like with like, or the two surfaces will appear to disagree when they do not.
 
-1. Note the **Total Revenue** card value on the dashboard.
-2. Ask the agent: "What is total revenue?"
-3. Repeat with gross margin, sales volume, and order lines.
+### All-time values
 
-Both surfaces resolve to the same `sales_kpi` row, so the values should match exactly rather than approximately. A mismatch means one side is not using the views: check that the Genie space exposes only `sales_analytics` and `sales_kpi`, and that the Power BI `CatalogName` parameter points at the catalog the bootstrap script actually used.
+Clear the year slicer first, then compare three places for the same metric:
+
+| Where | How |
+| --- | --- |
+| Databricks | `SELECT * FROM <catalog>.sales.sales_kpi` |
+| Power BI | the **Total Revenue (all time)** card |
+| Agent | ask "What is total revenue?" |
+
+All three must match to the cent. Repeat for gross margin, sales volume, and order lines.
+
+### Filtered values
+
+Select `2025` in the slicer and read revenue by category from the bar chart, then ask the agent "What was revenue by product category in 2025?" Both resolve through `sales_analytics`.
+
+The cards stay on all-time values while the slicer is applied. That is expected: `sales_kpi` has no date column and no relationship to `sales_analytics`, so the slicer cannot filter it. Use the charts, not the cards, for any filtered comparison.
+
+### When values disagree
+
+Check in this order:
+
+1. The Power BI `CatalogName` parameter points at the catalog `bootstrap.ps1` actually used.
+2. The Genie space exposes only `sales_analytics` and `sales_kpi`. If the raw tables are attached, Genie can aggregate `fact_sales` directly and round at a different grain than the views do.
+3. The dataset was not re-bootstrapped between the two readings, since `fact_sales` volumes are randomly generated.
+4. You are comparing an all-time card against an all-time question, not against a filtered one.
 
 ## Security Considerations
 

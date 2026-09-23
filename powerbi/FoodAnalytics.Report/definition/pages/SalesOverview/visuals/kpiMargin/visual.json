@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Gross Margin'"
+                  "Value": "'Gross Margin (all time)'"
                 }
               }
             }

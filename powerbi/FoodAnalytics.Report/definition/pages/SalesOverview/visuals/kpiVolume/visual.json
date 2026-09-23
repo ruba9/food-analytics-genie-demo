@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Sales Volume (kg)'"
+                  "Value": "'Sales Volume kg (all time)'"
                 }
               }
             }

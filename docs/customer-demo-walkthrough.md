@@ -130,13 +130,13 @@ The agent also explained that Bakery had the highest total sales volume. This is
 
 This is the step that usually decides whether an audience trusts the agent.
 
-Open the Power BI dashboard from `powerbi/FoodAnalytics.pbip` and show the four KPI cards. Then ask the agent the matching question, for example "What is total revenue?" and place the two side by side.
+Open the Power BI dashboard from `powerbi/FoodAnalytics.pbip` and show the four KPI cards. Make sure the year slicer is cleared. Then ask the agent the matching question, for example "What is total revenue?" and place the two side by side.
 
 The values match exactly, because the card and the agent both read the same `sales_kpi` row. Neither surface calculates the total independently. Repeat with gross margin or sales volume if the audience wants further proof.
 
 The business point to make is that this removes the usual reconciliation argument. When an agent and a dashboard disagree, adoption stops. Here they cannot disagree without someone deliberately changing the shared view, and that change would move both surfaces together.
 
-If you want to demonstrate the dimensional path as well, use the category bar chart and ask the agent for revenue by product category. Both resolve through `sales_analytics`.
+If you want to demonstrate the dimensional path as well, select a year in the slicer and compare the category bar chart with the agent's answer for the same year. Both resolve through `sales_analytics`. Note for the audience that the cards stay on all-time totals, because they are bound to the unfiltered KPI view.
 
 ### 8. Continue with follow-up questions
 
