@@ -1,401 +1,396 @@
-# Private Microsoft Foundry Agent with Databricks Genie
+# Food Analytics Genie
 
-This repository demonstrates a network-isolated Microsoft Foundry agent that answers natural-language business questions using governed data in Azure Databricks. The agent calls a Databricks Genie space through Model Context Protocol (MCP), allowing Genie to generate and run SQL while the Foundry model presents the result in clear business language.
+**A network-isolated Microsoft Foundry agent and a Power BI dashboard that give the same
+answer, because both read the same governed metric definitions in Azure Databricks.**
 
-The sample includes Azure infrastructure as code, private cross-region networking, a synthetic sales dataset, Databricks bootstrap automation, a Python agent client, connectivity checks, and a customer-ready demonstration walkthrough.
+Ask the agent *"What is total net revenue?"* and it returns **3,594,029.20 SEK**: the same
+figure, to the cent, as the Power BI card. The agent never calculates the number itself. It
+asks a Databricks Genie space, which queries governed Unity Catalog views, and every hop runs
+over private endpoints with managed identities. No secrets are stored anywhere.
 
-> [!IMPORTANT]
-> This repository contains a demonstration environment, not a production reference implementation. The validated sandbox connection uses a short-lived Databricks personal access token (PAT). Use Databricks OAuth identity passthrough or another renewable managed identity mechanism for production.
+| | |
+|---|---|
+| **Agent** | Microsoft Foundry hosted agent (Agent Framework, Responses protocol), `gpt-5.1` |
+| **Tool** | Databricks Genie, exposed to Foundry as an MCP tool through a project connection |
+| **Data** | Unity Catalog `food_analytics.gold` views on a Pro SQL warehouse |
+| **BI** | Power BI semantic model (import mode, DAX measures) over the same views |
+| **Network** | Foundry and Databricks both have public network access **disabled** |
+| **Identity** | Managed identities end to end; no keys, secrets or connection strings |
+
+---
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    User["Business user"]
-    Analyst["Report consumer"]
+    user(["Presenter / business user"])
 
-    subgraph Foundry["West Europe - Foundry VNet 10.100.0.0/16"]
-        Agent["Foundry prompt agent"]
-        Model["GPT-4.1-mini"]
-        Connection["Foundry project connection"]
-        Bastion["Azure Bastion"]
-        Jumpbox["Administration jumpbox"]
+    subgraph azure["Azure subscription · single region"]
+        subgraph vnet["Virtual network 10.19.0.0/16 · no public data plane"]
+            jumpbox["Jumpbox VM<br/>Edge · azd · Power BI Desktop<br/>system-assigned identity"]
+
+            subgraph pe["Private endpoints subnet"]
+                pe_foundry["PE: Foundry account"]
+                pe_dbx["PE: Databricks UI/API<br/>+ browser auth"]
+                pe_storage["PE: ADLS Gen2"]
+            end
+
+            subgraph foundry["Microsoft Foundry · public access disabled"]
+                agent["Hosted agent<br/>food-analytics-genie"]
+                model["Model deployment<br/>gpt-5.1"]
+                toolbox["Toolbox<br/>food-analytics-tools"]
+                connection["Project connection<br/>databricks-genie<br/>ProjectManagedIdentity"]
+            end
+
+            subgraph dbx["Azure Databricks Premium · VNet-injected · public access disabled"]
+                genie["Genie space<br/>Food Analytics"]
+                warehouse["Pro SQL warehouse"]
+                uc[("Unity Catalog<br/>food_analytics.gold<br/>sales_analytics · waste_analytics · sales_kpi")]
+            end
+
+            storage[("ADLS Gen2<br/>Unity Catalog storage<br/>public access disabled")]
+        end
     end
 
-    subgraph Databricks["North Europe - Databricks VNet 10.200.0.0/16"]
-        MCP["Genie MCP endpoint"]
-        Genie["Sales and Customer Analytics"]
-        Warehouse["Databricks SQL warehouse"]
-        Views["Unity Catalog views<br/>sales_kpi and sales_analytics"]
-        Data["Sales fact and dimensions"]
-    end
-
-    PowerBI["Power BI semantic model<br/>DirectQuery"]
-
-    User -->|"Natural-language question"| Agent
-    Agent --> Model
-    Agent -->|"Authenticated tool call"| Connection
-    Connection -->|"Private DNS and VNet peering"| MCP
-    MCP --> Genie
-    Genie -->|"Generated SQL"| Warehouse
-    Warehouse --> Views
-    Views --> Data
-    Views -->|"Calculated result"| Agent
-    Agent -->|"Business answer"| User
-
-    Views -->|"DirectQuery"| PowerBI
-    PowerBI -->|"Dashboard"| Analyst
-
-    Bastion --> Jumpbox
-    Jumpbox -.->|"Setup and validation"| Agent
-    Jumpbox -.->|"Dataset bootstrap"| Warehouse
+    user -- "RDP, single source IP" --> jumpbox
+    jumpbox -- "playground / azd ai agent invoke" --> pe_foundry --> agent
+    agent -- "reasoning" --> model
+    agent -- "MCP tool call" --> toolbox --> connection
+    connection -- "Entra token, aud = AzureDatabricks" --> pe_dbx --> genie
+    genie -- "generated SQL" --> warehouse --> uc
+    uc -. "managed tables" .-> pe_storage --> storage
+    jumpbox -- "Power BI import refresh" --> pe_dbx
 ```
 
-Public network access is disabled for the Foundry and Databricks environments. Runtime traffic uses private endpoints, private DNS, and bidirectional VNet peering. Azure Bastion and the jumpbox form a separate administrator path.
+A slide-ready copy of this diagram is in [docs/images/architecture.png](docs/images/architecture.png),
+and the design is explained in detail in [docs/architecture.md](docs/architecture.md).
 
-The agent and the Power BI dashboard read the same two Unity Catalog views, so a figure quoted by the agent and the same figure on the dashboard come from one SQL definition rather than two independent calculations.
+### What happens when someone asks a question
 
-## What This Repository Deploys
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User (inside the VNet)
+    participant A as Foundry hosted agent
+    participant M as gpt-5.1
+    participant G as Databricks Genie (MCP)
+    participant W as SQL warehouse
+    participant V as Unity Catalog gold views
 
-| Area | Components |
-| --- | --- |
-| Foundry | Foundry account and project, `gpt-4.1-mini` deployment, capability host, private endpoints, and supporting data resources |
-| Network | West Europe VNet with agent, private endpoint, MCP, Bastion, and jumpbox subnets |
-| Databricks | North Europe VNet-injected workspace, private endpoints, private DNS, and cross-region peering |
-| Data | Synthetic star schema with sales, product, customer, and plant data, plus the `sales_analytics` and `sales_kpi` views |
-| Agent | Python prompt agent configured with a private Databricks Genie MCP tool |
-| Reporting | Power BI project (PBIP) with a DirectQuery semantic model over the same views |
-| Operations | Staged deployment script, bootstrap script, and private-connectivity verification |
-
-## Repository Layout
-
-```text
-.
-|-- databricks/
-|   |-- bootstrap.ps1             # Creates/reuses the SQL warehouse and loads data
-|   `-- sql/01_genie_dataset.sql  # Star schema plus the shared metric views
-|-- docs/
-|   `-- customer-demo-walkthrough.md
-|-- infra/
-|   |-- deploy.ps1                # Orchestrates the three deployment stages
-|   |-- verify.ps1                # Validates peering, DNS links, and Foundry isolation
-|   |-- network/                  # Foundry VNet, Bastion, and jumpbox
-|   |-- databricks/               # Databricks workspace, DNS, and VNet peering
-|   `-- foundry/                  # Network-secured Foundry template and modules
-|-- powerbi/
-|   |-- FoodAnalytics.pbip
-|   |-- FoodAnalytics.SemanticModel/  # TMDL model, DirectQuery over the shared views
-|   `-- FoodAnalytics.Report/         # PBIR report definition
-`-- src/
-    `-- genie_agent.py            # Creates and invokes the Genie-enabled agent
+    U->>A: "What is total net revenue?"
+    A->>M: Instructions + question
+    M-->>A: Call the databricks_genie tool
+    A->>G: Tool call, Entra token from the managed identity
+    G->>W: SQL generated against the governed views only
+    W->>V: SELECT ... FROM food_analytics.gold.sales_kpi
+    V-->>W: 3594029.20 SEK
+    W-->>G: Result rows
+    G-->>A: Answer + the SQL it ran
+    A->>M: Tool result
+    M-->>A: Figure, unit and source, unrounded
+    A-->>U: "Total net revenue is 3594029.20 SEK (food_analytics.gold.sales_kpi)"
 ```
 
-For the customer presentation script, verified result, and a simplified explanation, see [Customer demo walkthrough](docs/customer-demo-walkthrough.md).
+The agent's instructions require a tool call for **every** numeric question, forbid
+rounding or recalculating the result, and tell it to stop and say so if the tool fails,
+instead of inventing table names. See [agent/main.py](agent/main.py).
 
-## Prerequisites
+### Why the agent and the dashboard agree
 
-Before deploying, you need:
+Three views in `food_analytics.gold` are the single source of truth:
 
-- An Azure subscription where you can create resources and role assignments.
-- PowerShell 7 or Windows PowerShell 5.1.
-- Azure CLI, signed in with `az login`.
-- Bicep support through Azure CLI.
-- Databricks CLI on the jumpbox or another machine inside the private network.
-- Python 3.10 or later for the agent client.
-- Capacity for the selected Azure OpenAI model and the required regional Azure services.
-- Non-overlapping address spaces for the Foundry, Databricks, and any connected on-premises networks.
+| View | Grain | Used for |
+|---|---|---|
+| `sales_analytics` | day × product × store | any filtered or grouped sales question |
+| `waste_analytics` | day × product × store | any filtered or grouped waste question |
+| `sales_kpi` | one row per headline metric | headline cards and headline questions |
 
-The deployment script checks and registers these resource providers:
+- The **Genie space** is pointed at these three views only. The raw fact and dimension
+  tables are excluded, so Genie cannot derive its own aggregates.
+- Genie also gets value dictionaries, phrasing-to-metric instructions and example SQL
+  for every headline question, so "gross margin percentage" always resolves to the same row.
+- The **Power BI model** imports the same views and defines the metrics as DAX measures
+  (`Net Revenue = SUM(net_revenue)`, `Gross Margin % = DIVIDE([Gross Margin], [Net Revenue])`).
 
-- `Microsoft.CognitiveServices`
-- `Microsoft.Databricks`
-- `Microsoft.Network`
-- `Microsoft.Compute`
-- `Microsoft.App`
-- `Microsoft.ContainerService`
-- `Microsoft.KeyVault`
-- `Microsoft.Storage`
-- `Microsoft.Search`
+---
 
-## Configuration
+## Repository layout
 
-Review the three parameter files before deployment:
+| Path | Contents |
+|---|---|
+| [agent/](agent/) | Hosted agent (`main.py`), toolbox spec, unit tests for the whole repo |
+| [deployment/template-19/](deployment/template-19/) | Vendored Foundry *private network agent tools* template ([provenance](deployment/TEMPLATE19_SOURCE.md)) |
+| [deployment/](deployment/) | Databricks, Unity Catalog, private link, jumpbox and connection templates, plus operations scripts |
+| [powerbi/](powerbi/) | Power BI project (PBIP: TMDL semantic model + PBIR report) |
+| [docs/deployment-plan.md](docs/deployment-plan.md) | Gated deployment runbook, operating notes and known risks |
+| [docs/architecture.md](docs/architecture.md) | Detailed architecture, identity chain and design decisions |
+| [azure.yaml](azure.yaml) | `azd` manifest for the hosted agent only. Infrastructure is owned by Template 19 |
 
-- [`infra/network/food-analytics.bicepparam`](infra/network/food-analytics.bicepparam) controls the Foundry network, subnets, Bastion, and jumpbox.
-- [`infra/foundry/food-analytics.bicepparam`](infra/foundry/food-analytics.bicepparam) controls the Foundry account, project, model, and supporting resources.
-- [`infra/databricks/food-analytics.bicepparam`](infra/databricks/food-analytics.bicepparam) controls the Databricks workspace, network, and public-access setting.
+All environment identifiers live in `deployment/environment.json`, which is git-ignored.
+The repository ships [deployment/environment.example.json](deployment/environment.example.json)
+with placeholders.
 
-The included defaults use:
+---
 
-| Setting | Value |
-| --- | --- |
-| Foundry region | West Europe |
-| Foundry VNet | `10.100.0.0/16` |
-| Databricks region | North Europe |
-| Databricks VNet | `10.200.0.0/16` |
-| Model | `gpt-4.1-mini`, version `2025-04-14` |
-| Model SKU | `GlobalStandard` |
-| Databricks public access | Disabled |
+## Step-by-step deployment
 
-The Foundry parameter file expects an existing Cosmos DB account. Set `AZURE_COSMOSDB_ACCOUNT_RESOURCE_ID` to a resource ID from your subscription before deploying, or leave it empty to let the template create one. Check regional capacity before choosing replacement regions or model capacity.
+> Follow [docs/deployment-plan.md](docs/deployment-plan.md) for the gated version with the
+> reasons behind each step. Every step that creates or exposes resources needs explicit
+> approval in your organisation.
 
-Do not place passwords, PATs, connection strings, or API keys in parameter files. The jumpbox password is requested securely by `infra/deploy.ps1`, held in `JUMPBOX_ADMIN_PASSWORD` for the deployment, and then removed from the process environment.
+### 0. Prerequisites
 
-## Deploy the Infrastructure
-
-Set reusable values in your PowerShell session:
+- An Azure subscription where you hold **Owner**, or **Contributor + User Access
+  Administrator**: the templates create role assignments.
+- **Foundry Project Manager** on the Foundry account once it exists. Subscription Owner
+  does not include Foundry data-plane actions.
+- `gpt-5.1` quota in your region (the reference deployment used `swedencentral` with
+  100K TPM; 10K TPM ran out during a three-question rehearsal).
+- Resource providers registered: `Microsoft.CognitiveServices`, `Microsoft.DocumentDB`,
+  `Microsoft.Search`, `Microsoft.Network`, `Microsoft.App`, `Microsoft.ContainerRegistry`,
+  `Microsoft.KeyVault`, `Microsoft.Databricks`, `Microsoft.Compute`.
+- Tools: Azure CLI with Bicep, Azure Developer CLI `>= 1.27.1`, PowerShell 7, Python 3.13.
 
 ```powershell
-$subscriptionId = '<azure-subscription-id>'
-$resourceGroup = '<foundry-resource-group>'
+az login --tenant <tenant-id>
+azd auth login --tenant-id <tenant-id>   # azd defaults to a different tenant than az
+python -m pip install -e "./agent[test]"
+python -m pytest agent/tests -q          # must pass before anything is deployed
 ```
 
-Deploy each stage in order:
+### 1. Describe your environment
 
 ```powershell
-./infra/deploy.ps1 `
-  -SubscriptionId $subscriptionId `
-  -ResourceGroup $resourceGroup `
-  -Stage network
-
-./infra/deploy.ps1 `
-  -SubscriptionId $subscriptionId `
-  -ResourceGroup $resourceGroup `
-  -Stage foundry
-
-./infra/deploy.ps1 `
-  -SubscriptionId $subscriptionId `
-  -ResourceGroup $resourceGroup `
-  -Stage connectivity
+Copy-Item deployment/environment.example.json deployment/environment.json
 ```
 
-The stages perform the following work:
+Fill in the subscription, resource group, region and jumpbox name now. The remaining values
+(Foundry names, workspace URL, warehouse ID, Genie space ID, identity client IDs) are filled
+in as the steps below create them. Scripts refuse to run while a `<placeholder>` remains.
 
-1. `network` creates the West Europe VNet, five subnets, Azure Bastion, and the jumpbox.
-2. `foundry` imports the network deployment outputs and creates the network-secured Foundry environment.
-3. `connectivity` creates the North Europe Databricks environment, bidirectional peering, private endpoints, and private DNS links.
+### 2. Network, Foundry and model (Template 19)
 
-Use `-WhatIf` with an individual stage to preview changes. The Foundry capability host can take more than 30 minutes to provision; do not cancel the deployment while it is still progressing.
-
-## Bootstrap Databricks
-
-Because the Databricks workspace has public access disabled, perform these steps from the jumpbox, VPN, or another host with private network access.
-
-Install and authenticate the Databricks CLI:
+Create the resource group and an empty NSG for the Databricks subnets, then deploy the
+private Foundry account, project, `gpt-5.1` deployment, VNet, subnets and private endpoints:
 
 ```powershell
-winget install Databricks.CLI
-databricks auth login --host 'https://<workspace-host>' --profile DEFAULT
+az group create -n <resource-group> -l <region>
+az network nsg create -g <resource-group> -n nsg-databricks -l <region>
+$env:DATABRICKS_NSG_ID = az network nsg show -g <resource-group> -n nsg-databricks --query id -o tsv
+
+az deployment group what-if -g <resource-group> --parameters deployment/food-analytics.bicepparam
+az deployment group create  -g <resource-group> --parameters deployment/food-analytics.bicepparam
 ```
 
-Create or reuse the SQL warehouse and load the sample data:
+Review the `what-if` output before every `create`. Two warnings from the vendored template
+(`BCP037`, `BCP321`) are upstream and expected.
+
+### 3. Databricks workspace and Unity Catalog storage
+
+Deploy the workspace **with public access enabled** for now. Creating it private first
+locks you out of the API you need for setup.
 
 ```powershell
-./databricks/bootstrap.ps1 `
-  -WorkspaceUrl 'https://<workspace-host>' `
-  -ProfileName DEFAULT
+az deployment group create -g <resource-group> -f deployment/databricks-workspace.bicep `
+    -p location=<region> vnetName=<vnet-name>
+az deployment group create -g <resource-group> -f deployment/databricks-uc-storage.bicep `
+    -p location=<region> vnetName=<vnet-name>
 ```
 
-The script selects an existing usable Unity Catalog catalog, creates the `sales` schema, and loads the following tables:
+Then, in the Databricks workspace (these steps are not scripted):
 
-- `fact_sales`
-- `dim_product`
-- `dim_customer`
-- `dim_plant`
+1. Create a storage credential from the Access Connector, and an external location on the
+   Unity Catalog container. The control plane cannot reach the private storage account,
+   so validation has to be skipped. The warehouse reading the data proves the path instead.
+2. Create the `food_analytics` catalog and `gold` schema on that location.
+3. Create a **Pro** SQL warehouse with `auto_stop_mins = 60`, and record its ID in
+   `environment.json` along with the workspace URL.
 
-It then creates the two views that both the agent and Power BI consume:
-
-- `sales_analytics` - daily sales metrics by product, customer, and plant attributes. Aggregate its additive measure columns for any filtered or grouped question.
-- `sales_kpi` - the all-time dashboard KPI values as one row per metric, used for unfiltered totals.
-
-These views are the shared semantic contract. Changing a business definition means changing it once here, and both the agent and the dashboard follow.
-
-The SQL source uses `food_analytics` as a logical catalog name. The bootstrap script rewrites it to the selected workspace catalog at runtime. Supply `-CatalogName '<catalog>'` when automatic discovery is not appropriate.
-
-## Create the Genie Space
-
-In the Databricks workspace:
-
-1. Open **SQL > Genie** and create a space.
-2. Attach it to the SQL warehouse created by the bootstrap script.
-3. Add only the two views `<catalog>.sales.sales_analytics` and `<catalog>.sales.sales_kpi`.
-4. Add descriptions and example questions appropriate to your business vocabulary.
-5. Copy the space ID from the Genie URL.
-
-Adding only the views, rather than the underlying tables, is what stops Genie from computing a total in a way the dashboard does not reproduce.
-
-The MCP endpoint has this form:
-
-```text
-https://<workspace-host>/api/2.0/mcp/genie/<space-id>
-```
-
-## Configure the Foundry Connection
-
-Create a Foundry project connection named `databricks-genie-mcp`. For the sandbox, it is a custom-key connection containing an `Authorization` value in the form `Bearer <databricks-token>`.
-
-Never store the token in this repository or pass it as a command-line argument. Use a short lifetime for sandbox PATs and rotate the connection when the token expires. For production, use Databricks OAuth identity passthrough or another managed, renewable credential design.
-
-The identity creating agent versions also needs the Foundry agent data actions, including `Microsoft.CognitiveServices/accounts/AIServices/agents/*`, plus the appropriate project runtime role.
-
-## Run the Agent
-
-Install the Python dependencies in a virtual environment:
+### 4. Seed the data and build the governed views
 
 ```powershell
-python -m venv .venv
-./.venv/Scripts/Activate.ps1
-python -m pip install azure-ai-projects azure-identity openai
+./deployment/seed-databricks-gold.ps1 -WorkspaceUrl <workspace-url> -WarehouseId <warehouse-id>
 ```
 
-Set the non-secret runtime configuration:
+This creates five tables in `food_analytics.gold` (dates, products, stores, sales, waste)
+with column comments. Genie uses those comments as context.
+
+### 5. Jumpbox
+
+Toolboxes, agent deployment, agent invocation and the Foundry playground are all
+**data-plane** operations, so they need a client inside the VNet.
 
 ```powershell
-$env:PROJECT_ENDPOINT = 'https://<foundry-account>.services.ai.azure.com/api/projects/<project-name>'
-$env:MODEL_NAME = 'gpt-4.1-mini'
-$env:GENIE_MCP_URL = 'https://<workspace-host>/api/2.0/mcp/genie/<space-id>'
-$env:GENIE_CONNECTION_ID = '<foundry-project-connection-resource-id>'
+az deployment group create -g <resource-group> -f deployment/jumpbox.bicep `
+    -p location=<region> vnetName=<vnet-name> allowedSourceIp=<your-public-ip>/32
+# Azure CLI prompts for adminPassword; it is a @secure() parameter with no default.
 ```
 
-Authenticate with an identity that has access to the Foundry project, then run:
+RDP is allowed from that one address only. Register the jumpbox identity in Databricks as a
+workspace admin with `MANAGE` on the catalog, and record its client ID as
+`JumpboxIdentityId`. Without that, nobody can administer the workspace once it is private.
+
+From here on, Databricks scripts run on the jumpbox through one launcher that fills their
+parameters from `environment.json`:
 
 ```powershell
-az login
-python ./src/genie_agent.py
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-create-shared-views.ps1
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/create-genie-space.ps1
 ```
 
-The script creates a version of `genie-agent`, sends a sample sales question, and prints the grounded response.
+The first creates the three governed views. The second creates (or updates) the Genie space
+over those views only. Record the Genie space ID it prints.
 
-## Open the Power BI Dashboard
+### 6. Connect Foundry to Genie
 
-The dashboard is stored as a Power BI project (PBIP) so the semantic model and report are reviewable text files rather than a binary `.pbix`. Power BI Desktop must have the **Power BI Project (.pbip) save option**, **TMDL format**, and **enhanced report format (PBIR)** preview features enabled under **File > Options and settings > Options > Preview features**.
-
-1. Collect the **Server hostname** and **HTTP path** of the SQL warehouse from the Databricks workspace under **SQL Warehouses > Connection details**.
-2. Open `powerbi/FoodAnalytics.pbip` in Power BI Desktop.
-3. When prompted, set the `ServerHostname`, `HttpPath`, and `CatalogName` parameters. `CatalogName` must match the catalog used by `databricks/bootstrap.ps1`.
-4. Authenticate with Microsoft Entra ID or a Databricks personal access token.
-
-The model connects in DirectQuery mode, so each visual issues a live query to the warehouse and no business data is stored in the report file. Because the warehouse has public network access disabled, Power BI Desktop must run from inside the private network. Publishing to the Power BI service additionally requires a data gateway with the same private access.
-
-The report contains one page:
-
-| Visual | Source |
-| --- | --- |
-| Total Revenue, Gross Margin, Sales Volume, Order Lines cards | `sales_kpi`, one row per metric, always all-time |
-| Calendar year slicer | `sales_analytics`, filters the charts only |
-| Revenue by product category | `sales_analytics` |
-| Monthly revenue trend | `sales_analytics` |
-| Category and channel detail table | `sales_analytics` |
-
-The KPI cards deliberately read single rows from `sales_kpi` instead of re-aggregating the fact table. That is what makes a card value and the agent's answer to the same question identical rather than merely similar. Because `sales_kpi` holds no date column, the cards do not respond to the year slicer.
-
-## Validate Private Connectivity
-
-Run the control-plane checks from any authenticated administration host:
+The connection is an ARM resource, so it deploys from anywhere:
 
 ```powershell
-./infra/verify.ps1 `
-  -SubscriptionId $subscriptionId `
-  -FoundryResourceGroup $resourceGroup `
-  -DatabricksWorkspaceHost '<workspace-host>'
+az deployment group create -g <resource-group> -f deployment/foundry-connections.bicep `
+    -p foundryAccountName=<account> foundryProjectName=<project> `
+       databricksHost=<workspace-url> genieSpaceId=<genie-space-id>
 ```
 
-The script verifies:
+It uses `ProjectManagedIdentity` with the AzureDatabricks application ID as the token
+audience. Databricks rejects the `https://azuredatabricks.net/` audience form with HTTP 400.
 
-- VNet peering is `Connected`.
-- The Foundry VNet is linked to `privatelink.azuredatabricks.net`.
-- Foundry public network access is disabled.
-- The Foundry account provisioning state is `Succeeded`.
+### 7. Grant the Foundry identities in Databricks
 
-From inside the Foundry network, also run:
+Both the Foundry **account** and **project** system-assigned identities appear as callers,
+depending on the stage of the request. Grant both, or failures look intermittent.
 
 ```powershell
-nslookup <workspace-host>
+./deployment/grant-databricks-identity.ps1 -ApplicationId <account-identity-client-id> -DisplayName foundry-account
+./deployment/grant-databricks-identity.ps1 -ApplicationId <project-identity-client-id> -DisplayName foundry-project
 ```
 
-The workspace must resolve to a private RFC1918 address. A public address indicates an incorrect DNS path and the private agent call will fail.
+Each identity gets workspace entitlements, `CAN_RUN` on the Genie space, `CAN_USE` on the
+warehouse, and `USE_CATALOG` / `USE_SCHEMA` / `SELECT` in Unity Catalog. It is **never**
+made a workspace admin. The script reads the grants back, because Unity Catalog can
+silently drop a grant on a principal it has only just seen.
 
-## Verified Sandbox Result
+### 8. Toolbox and hosted agent
 
-The end-to-end validation asked:
+```powershell
+./deployment/run-on-jumpbox.ps1
+```
 
-> What was the total sales volume by product category for last quarter?
+This ships the agent source to the jumpbox and, from inside the VNet, creates the
+`food-analytics-tools` toolbox and runs `azd deploy` for the hosted agent.
 
-The Databricks-backed response returned:
+### 9. Lock everything down
 
-| Product category | Total sales volume |
-| --- | ---: |
-| Bakery | 1,063,484 kg |
-| Margarine | 906,776.4 kg |
-| Oils & Fats | 602,334.3 kg |
+Redeploy the workspace with `publicNetworkAccess=Disabled` and
+`requiredNsgRules=NoAzureDatabricksRules`, then add its private endpoints:
 
-This confirms that the Foundry agent invoked the private Genie MCP endpoint and reported values calculated from the Databricks dataset rather than relying on model knowledge. The fact table is generated with randomized volumes, so a fresh bootstrap produces different totals.
+```powershell
+az deployment group create -g <resource-group> -f deployment/databricks-workspace.bicep `
+    -p location=<region> vnetName=<vnet-name> publicNetworkAccess=Disabled requiredNsgRules=NoAzureDatabricksRules
+az deployment group create -g <resource-group> -f deployment/databricks-private-link.bicep `
+    -p location=<region> databricksWorkspaceResourceId=<workspace-resource-id> vnetName=<vnet-name> peSubnetName=snet-private-endpoints
+```
 
-## Confirm the Agent and Dashboard Agree
+Stop the warehouse before the workspace update; updates fail while compute is running.
+Network changes take two to four minutes to apply, in both directions.
 
-The KPI cards read `sales_kpi`, which is deliberately unfiltered. The slicer and charts read `sales_analytics`. Compare like with like, or the two surfaces will appear to disagree when they do not.
+### 10. Verify
 
-### All-time values
+```powershell
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-verify-private-path.ps1   # 10.19.x address, HTTPS 200
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-demo-test.ps1             # warms the warehouse, asks 3 questions
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-verify-kpi-parity.ps1     # agent vs sales_kpi side by side
+```
 
-Clear the year slicer first, then compare three places for the same metric:
+From the workstation, the Databricks workspace must return **HTTP 403**.
 
-| Where | How |
-| --- | --- |
-| Databricks | `SELECT * FROM <catalog>.sales.sales_kpi` |
-| Power BI | the **Total Revenue (all time)** card |
-| Agent | ask "What is total revenue?" |
+### 11. Power BI
 
-All three must match to the cent. Repeat for gross margin, sales volume, and order lines.
+```powershell
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-install-powerbi.ps1
+./deployment/push-powerbi-to-jumpbox.ps1
+```
 
-### Filtered values
+The push script fills the model's connection parameters from `environment.json`. Then RDP to
+the jumpbox, open `C:\powerbi\FoodAnalytics.pbip`, select **Refresh** and sign in with
+**Microsoft Entra ID**. A presenter needs their own Unity Catalog `SELECT` on the gold views
+to refresh the model or use Genie in the browser.
 
-Select `2025` in the slicer and read revenue by category from the bar chart, then ask the agent "What was revenue by product category in 2025?" Both resolve through `sales_analytics`.
+---
 
-The cards stay on all-time values while the slicer is applied. That is expected: `sales_kpi` has no date column and no relationship to `sales_analytics`, so the slicer cannot filter it. Use the charts, not the cards, for any filtered comparison.
+## Running the demo
 
-### When values disagree
+1. **Warm up**, about 10 minutes before you start. A stopped Pro warehouse takes around 6 minutes to start,
+   and Genie times out against a cold one:
+   `./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-demo-test.ps1`
+2. **Genie** (Databricks UI on the jumpbox): ask
+   *"Which product categories generated the most net revenue in 2025?"* and expand the SQL.
+3. **Foundry playground**: ask the same question, then *"What is total net revenue?"*. Start
+   a new chat for each question so the agent queries afresh. Open the trace to show the
+   `databricks_genie` tool call.
+4. **Power BI**: with no year selected, the cards show the same headline figures. Select
+   2025 and the category and region charts match the agent's 2025 answers.
 
-Check in this order:
+| Question | Expected answer |
+|---|---|
+| What is total net revenue? | 3,594,029.20 SEK |
+| What is the gross margin percentage? | 24.34 % |
+| What is the total food waste cost? | 186,345.56 SEK |
+| Which product categories generated the most net revenue in 2025? | Seafood 245,055.46 SEK first, Snacks 37,102.77 SEK last |
+| Compare gross margin percentage by store region for 2025. | Norrland 24.36 %, Svealand 24.31 %, Götaland 24.27 % |
 
-1. The Power BI `CatalogName` parameter points at the catalog `bootstrap.ps1` actually used.
-2. The Genie space exposes only `sales_analytics` and `sales_kpi`. If the raw tables are attached, Genie can aggregate `fact_sales` directly and round at a different grain than the views do.
-3. The dataset was not re-bootstrapped between the two readings, since `fact_sales` volumes are randomly generated.
-4. You are comparing an all-time card against an all-time question, not against a filtered one.
+**Always include a period in the question.** Without one, Genie may choose a single month,
+and two runs of the same question can return different figures.
 
-## Security Considerations
+---
 
-- Keep public network access disabled for both Foundry and Databricks.
-- Use private endpoints, private DNS, and connected VNets for runtime traffic.
-- Use Bastion rather than assigning a public IP to the jumpbox.
-- Store credentials in managed connections or a secret store, never in source files.
-- Prefer managed identity and OAuth over long-lived PATs.
-- Apply least-privilege RBAC to deployment, agent-authoring, and runtime identities.
-- Treat business data returned to the model as governed data and apply the same access policies used by Databricks.
-- Enable diagnostic logging and monitor agent tool calls, authentication failures, and network changes.
+## Known limitations
 
-## Cost and Cleanup
+- **One identity for every user.** Genie is called with a single managed identity, so Unity
+  Catalog sees the same principal for everyone. Row- and column-level security is **not**
+  enforced per user through the agent.
+- **Import mode is a snapshot.** The dashboard reflects its last refresh, and the agent
+  queries live data. They agree today because the demo data is static.
+- **The agent reads the Databricks views, not the Power BI model.** For sums and simple ratios
+  the results are identical. Time intelligence, calculation groups and model RLS defined in
+  DAX have no Genie equivalent.
+- **Waste does not follow the year slicer.** `Sales Analytics` and `Waste Analytics` have no
+  shared date table, so the waste card always shows the all-time total. A shared date
+  dimension fixes this.
+- **Cold starts.** The Pro warehouse needs minutes to start. Serverless would be faster, but
+  reaching private storage from serverless needs a Network Connectivity Config, which needs
+  a Databricks account admin.
+- **Genie shows SEK as `$`** in its own UI. This is cosmetic: column comments and agent answers use SEK.
 
-This solution can incur charges for Foundry model usage, Databricks compute, Azure Bastion, the jumpbox VM and disks, private endpoints, DNS, storage, search, Key Vault, Cosmos DB, and monitoring resources.
+The full list, including the accepted risks, is in
+[docs/deployment-plan.md](docs/deployment-plan.md#4-known-blockers-and-accepted-risks).
 
-The SQL warehouse is configured to stop automatically after inactivity. Stop or deallocate the jumpbox when it is not needed, and remove unused model capacity. For a temporary sandbox, delete both the Foundry and Databricks resource groups after the demonstration, then review soft-deleted Key Vault and Foundry resources if you need to reuse their names.
+## Cost control
 
-## Troubleshooting
+Deallocate the jumpbox and let the warehouse auto-stop when you aren't presenting:
 
-| Symptom | Check |
-| --- | --- |
-| Databricks host resolves publicly | Private DNS zone links and the workspace browser-authentication private endpoint |
-| Peering shows `Initiated` | Ensure both directions of the VNet peering exist |
-| Agent creation returns `403` | Confirm the identity has Foundry agent data actions and project runtime access |
-| Genie call returns `401` | Refresh the Databricks credential in the Foundry project connection |
-| Databricks CLI authentication fails under another Windows account | Reauthenticate as that account; the OAuth cache is user-bound |
-| Databricks rejects CLI JSON | Use BOM-free UTF-8; the bootstrap script already handles Windows PowerShell 5.1 |
-| Catalog creation fails | Use an existing Unity Catalog catalog with `-CatalogName` |
-| Capability-host deployment appears stalled | Allow at least 30-35 minutes before diagnosing a timeout |
+```powershell
+./deployment/Invoke-OnJumpbox.ps1 ./deployment/jumpbox-warehouse.ps1 -Parameters @{ Action = 'stop' }
+az vm deallocate -g <resource-group> -n <jumpbox-name>
+```
 
-## Demo Guide
+## Testing
 
-Use [docs/customer-demo-walkthrough.md](docs/customer-demo-walkthrough.md) for a presentation-ready narrative, detailed talk track, security explanation, and follow-up questions.
+```powershell
+python -m pytest agent/tests -q
+```
 
-## License and Source Attribution
+The tests check the design rules as well as the code, including:
+- no stored credentials
+- no environment identifiers in committed files
+- Genie reads only the governed views
+- Genie's metric names match `sales_kpi`
+- the Power BI cards show full values
+- no visual mixes unrelated tables
+- RDP is restricted to a single source address
 
-The network-secured Foundry infrastructure under `infra/foundry` is based on Microsoft Foundry sample template 19 for private-network agent tools. Review the upstream [microsoft-foundry/foundry-samples](https://github.com/microsoft-foundry/foundry-samples) repository for its current licensing and support terms. Custom deployment orchestration, Databricks integration, dataset bootstrap, and demo documentation in this repository are provided as sample material without warranty.
+## Acknowledgements
+
+Network and Foundry infrastructure is based on template
+`19-private-network-agent-tools` from
+[microsoft-foundry/foundry-samples](https://github.com/microsoft-foundry/foundry-samples),
+with the deviations listed in [deployment/TEMPLATE19_SOURCE.md](deployment/TEMPLATE19_SOURCE.md).
