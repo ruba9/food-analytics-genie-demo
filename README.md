@@ -123,6 +123,7 @@ Three views in `food_analytics.gold` are the single source of truth:
 | [deployment/](deployment/) | Databricks, Unity Catalog, private link, jumpbox and connection templates, plus operations scripts |
 | [powerbi/](powerbi/) | Power BI project (PBIP: TMDL semantic model + PBIR report) |
 | [docs/deployment-plan.md](docs/deployment-plan.md) | Gated deployment runbook, operating notes and known risks |
+| [docs/manual-setup.md](docs/manual-setup.md) | Click-by-click instructions for the steps that are not scripted |
 | [docs/architecture.md](docs/architecture.md) | Detailed architecture, identity chain and design decisions |
 | [azure.yaml](azure.yaml) | `azd` manifest for the hosted agent only. Infrastructure is owned by Template 19 |
 
@@ -170,7 +171,8 @@ in as the steps below create them. Scripts refuse to run while a `<placeholder>`
 
 ### 2. Network, Foundry and model (Template 19)
 
-Create the resource group and an empty NSG for the Databricks subnets, then deploy the
+Create the resource group and an empty NSG for the Databricks subnets
+([manual step A](docs/manual-setup.md#a-create-the-databricks-nsg)), then deploy the
 private Foundry account, project, `gpt-5.1` deployment, VNet, subnets and private endpoints:
 
 ```powershell
@@ -197,14 +199,19 @@ az deployment group create -g <resource-group> -f deployment/databricks-uc-stora
     -p location=<region> vnetName=<vnet-name>
 ```
 
-Then, in the Databricks workspace (these steps are not scripted):
+Then, in the Databricks workspace, complete these steps. They are done by hand and are
+described click by click in [docs/manual-setup.md](docs/manual-setup.md):
 
-1. Create a storage credential from the Access Connector, and an external location on the
-   Unity Catalog container. The control plane cannot reach the private storage account,
-   so validation has to be skipped. The warehouse reading the data proves the path instead.
-2. Create the `food_analytics` catalog and `gold` schema on that location.
-3. Create a **Pro** SQL warehouse with `auto_stop_mins = 60`, and record its ID in
-   `environment.json` along with the workspace URL.
+1. [Confirm the Unity Catalog metastore](docs/manual-setup.md#b-confirm-the-unity-catalog-metastore).
+2. [Create a storage credential and an external location](docs/manual-setup.md#c-create-the-storage-credential-and-external-location)
+   from the Access Connector, with validation skipped. The control plane cannot reach
+   the private storage account; the warehouse reading the data proves the path instead.
+3. [Create a **Pro** SQL warehouse](docs/manual-setup.md#d-create-the-pro-sql-warehouse) with
+   `auto_stop_mins = 60`.
+4. [Create the `food_analytics` catalog and `gold` schema](docs/manual-setup.md#e-create-the-catalog-and-schema)
+   on that location.
+
+Record the workspace URL and warehouse ID in `environment.json`.
 
 ### 4. Seed the data and build the governed views
 
@@ -226,9 +233,15 @@ az deployment group create -g <resource-group> -f deployment/jumpbox.bicep `
 # Azure CLI prompts for adminPassword; it is a @secure() parameter with no default.
 ```
 
-RDP is allowed from that one address only. Register the jumpbox identity in Databricks as a
-workspace admin with `MANAGE` on the catalog, and record its client ID as
-`JumpboxIdentityId`. Without that, nobody can administer the workspace once it is private.
+RDP is allowed from that one address only. Then complete three manual steps from
+[docs/manual-setup.md](docs/manual-setup.md):
+
+- [F. Look up the managed identity client IDs](docs/manual-setup.md#f-look-up-managed-identity-client-ids)
+  for the Foundry account, Foundry project and jumpbox, and record them in `environment.json`.
+- [G. Give the jumpbox its Azure roles and install `azd`](docs/manual-setup.md#g-give-the-jumpbox-its-azure-roles-and-tools).
+- [H. Make the jumpbox a Databricks administrator](docs/manual-setup.md#h-make-the-jumpbox-a-databricks-administrator)
+  with `MANAGE` on the catalog. Do this before lockdown: without it, nobody can administer
+  the workspace once it is private.
 
 From here on, Databricks scripts run on the jumpbox through one launcher that fills their
 parameters from `environment.json`:
@@ -313,7 +326,10 @@ From the workstation, the Databricks workspace must return **HTTP 403**.
 The push script fills the model's connection parameters from `environment.json`. Then RDP to
 the jumpbox, open `C:\powerbi\FoodAnalytics.pbip`, select **Refresh** and sign in with
 **Microsoft Entra ID**. A presenter needs their own Unity Catalog `SELECT` on the gold views
-to refresh the model or use Genie in the browser.
+to refresh the model or use Genie in the browser; see
+[I. Grant presenters access](docs/manual-setup.md#i-grant-presenters-access). To open and
+close RDP for each session, see
+[J. Open and close RDP for a session](docs/manual-setup.md#j-open-and-close-rdp-for-a-session).
 
 ---
 
@@ -394,3 +410,8 @@ Network and Foundry infrastructure is based on template
 `19-private-network-agent-tools` from
 [microsoft-foundry/foundry-samples](https://github.com/microsoft-foundry/foundry-samples),
 with the deviations listed in [deployment/TEMPLATE19_SOURCE.md](deployment/TEMPLATE19_SOURCE.md).
+
+## License
+
+[MIT](LICENSE). The vendored template under `deployment/template-19/` remains under the
+license of its source repository.
