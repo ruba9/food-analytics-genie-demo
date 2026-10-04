@@ -143,6 +143,7 @@ flowchart TB
 | Genie as the only tool | Agent-generated SQL | Genie applies the space's instructions, value dictionaries and Unity Catalog permissions. The model never writes SQL. |
 | Pro SQL warehouse | Serverless | Serverless reaching private storage needs a Network Connectivity Config, which needs a Databricks account admin. |
 | Power BI import mode | DirectQuery | Import mode is the customer's standard. The trade-off is a snapshot between refreshes. |
+| No Microsoft Fabric | Fabric data agent over the semantic model, OneLake | Databricks owns the metrics in this design. Fabric Private Link is tenant-wide, so it cannot be scoped to a demo, and querying a semantic model needs Fabric capacity or PPU plus tenant-admin consent. See the [README](../README.md#why-microsoft-fabric-is-not-included). |
 | Jumpbox with single-IP RDP | Azure Bastion | Lowest cost for a demo. Use Bastion or just-in-time access in production; see section 8. |
 | `conversation_id` forwarded to MCP tools | Framework default | Agent Framework strips `conversation_id` from tool arguments, but Genie's `poll_response` tool needs it. Without it, any query still running after the first call fails. |
 

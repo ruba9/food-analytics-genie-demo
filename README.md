@@ -380,6 +380,29 @@ and two runs of the same question can return different figures.
 The full list, including the accepted risks, is in
 [docs/deployment-plan.md](docs/deployment-plan.md#4-known-blockers-and-accepted-risks).
 
+## Why Microsoft Fabric is not included
+
+This version deliberately uses Azure Databricks, Microsoft Foundry and Power BI only:
+
+- **Databricks owns the metrics.** Unity Catalog is the single source of truth and both the
+  agent and Power BI read it directly, so Fabric is not needed to prove that they agree.
+- **Fabric Private Link is tenant-wide.** It cannot be scoped to one workspace, so a fully
+  private demo could not include Fabric without changing the network posture of every
+  Fabric and Power BI user in the tenant.
+- **Extra prerequisites.** Letting an agent query a Power BI semantic model needs Fabric
+  capacity or Premium Per User for XMLA, the `Microsoft.Fabric` resource provider, and
+  tenant-admin consent.
+- **Publishing needs a gateway.** Scheduled refresh in the Power BI service from a private
+  Databricks workspace needs a data gateway inside the VNet, and a VNet data gateway
+  needs Fabric capacity. The demo therefore runs the report in Power BI Desktop on the
+  jumpbox.
+
+**When to add it:** if the Power BI semantic model is where metrics are defined (time
+intelligence, calculation groups, row-level security in DAX), add the model as a second
+agent tool, through a Fabric data agent or the XMLA endpoint, next to Genie. The model
+then answers for governed BI metrics and Genie for exploration beyond it. The same step
+enables publishing the dashboard with scheduled refresh.
+
 ## Cost control
 
 Deallocate the jumpbox and let the warehouse auto-stop when you aren't presenting:
