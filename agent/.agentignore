@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+toolbox.yaml
+tests/
+# The remote builder assumes Poetry when a pyproject.toml is present; the deployed
+# package uses requirements.txt instead.
+pyproject.toml
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc

@@ -1,2 +1,6 @@
-**/.pbi/localSettings.json
-**/.pbi/cache.abf
+# Power BI artefacts that Desktop regenerates locally.
+.pbi/
+*.pbix
+*.Report/.pbi/
+*.SemanticModel/.pbi/
+*.SemanticModel/.pbi/cache.abf

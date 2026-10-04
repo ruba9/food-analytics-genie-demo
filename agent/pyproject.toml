@@ -1,0 +1,20 @@
+[project]
+name = "food-analytics-genie-agent"
+version = "0.1.0"
+description = "A Microsoft Foundry hosted analytics agent for Databricks Genie and Fabric semantic models."
+requires-python = ">=3.13"
+dependencies = [
+    "agent-framework-foundry",
+    "agent-framework-foundry-hosting>=1.0.0b260918",
+    "azure-identity",
+    "debugpy",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

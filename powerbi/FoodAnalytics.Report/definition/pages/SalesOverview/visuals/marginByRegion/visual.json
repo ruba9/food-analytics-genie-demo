@@ -1,16 +1,16 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
-  "name": "revenueTrend",
+  "name": "marginByRegion",
   "position": {
-    "x": 16,
-    "y": 428,
-    "z": 7,
-    "width": 1232,
-    "height": 268,
-    "tabOrder": 7
+    "x": 800,
+    "y": 152,
+    "z": 6,
+    "width": 448,
+    "height": 260,
+    "tabOrder": 6
   },
   "visual": {
-    "visualType": "lineChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Category": {
@@ -23,11 +23,11 @@
                       "Entity": "Sales Analytics"
                     }
                   },
-                  "Property": "year_month"
+                  "Property": "region"
                 }
               },
-              "queryRef": "Sales Analytics.year_month",
-              "nativeQueryRef": "year_month",
+              "queryRef": "Sales Analytics.region",
+              "nativeQueryRef": "region",
               "active": true
             }
           ]
@@ -42,11 +42,11 @@
                       "Entity": "Sales Analytics"
                     }
                   },
-                  "Property": "Net Revenue"
+                  "Property": "Gross Margin %"
                 }
               },
-              "queryRef": "Sales Analytics.Net Revenue",
-              "nativeQueryRef": "Net Revenue"
+              "queryRef": "Sales Analytics.Gross Margin %",
+              "nativeQueryRef": "Gross Margin %"
             }
           ]
         }
@@ -55,16 +55,16 @@
         "sort": [
           {
             "field": {
-              "Column": {
+              "Measure": {
                 "Expression": {
                   "SourceRef": {
                     "Entity": "Sales Analytics"
                   }
                 },
-                "Property": "year_month"
+                "Property": "Gross Margin %"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
         ]
       }
@@ -83,7 +83,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Monthly Net Revenue'"
+                  "Value": "'Gross Margin % by Store Region'"
                 }
               }
             }
@@ -91,6 +91,35 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "2L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

@@ -7,10 +7,12 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["ServerHostname","HttpPath","CatalogName","SchemaName","Sales Analytics","Dashboard KPI"]
+annotation PBI_QueryOrder = ["ServerHostname","HttpPath","CatalogName","SchemaName","Sales Analytics","Waste Analytics","Dashboard KPI"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
 ref table 'Sales Analytics'
+
+ref table 'Waste Analytics'
 
 ref table 'Dashboard KPI'

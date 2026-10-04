@@ -1,0 +1,114 @@
+table 'Waste Analytics'
+	lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0100
+
+	measure 'Waste Cost' = SUM('Waste Analytics'[waste_cost])
+		formatString: #,0.00 "SEK"
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0110
+
+	measure 'Units Wasted' = SUM('Waste Analytics'[units_wasted])
+		formatString: #,0
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0111
+
+	/// Waste cost as a share of net revenue. Crosses tables deliberately: both are
+	/// filtered by the same date, product and store context.
+	measure 'Waste Cost % of Revenue' = DIVIDE([Waste Cost], [Net Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0112
+
+	column waste_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0200
+		summarizeBy: none
+		sourceColumn: waste_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0201
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0202
+		summarizeBy: none
+		sourceColumn: year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0203
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0204
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0205
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column store_name
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0206
+		summarizeBy: none
+		sourceColumn: store_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column waste_reason
+		dataType: string
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0207
+		summarizeBy: none
+		sourceColumn: waste_reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column units_wasted
+		dataType: int64
+		formatString: 0
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0208
+		summarizeBy: none
+		sourceColumn: units_wasted
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column waste_cost
+		dataType: decimal
+		lineageTag: 4d0e2b50-3333-4c32-9f53-2e4d7b9c0209
+		summarizeBy: none
+		sourceColumn: waste_cost
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Waste Analytics' = m
+		mode: import
+		source =
+				let
+				    Source = Databricks.Catalogs(ServerHostname, HttpPath, [Catalog=null, Database=null, EnableAutomaticProxyDiscovery=null]),
+				    Catalog = Source{[Name=CatalogName,Kind="Database"]}[Data],
+				    Schema = Catalog{[Name=SchemaName,Kind="Schema"]}[Data],
+				    View = Schema{[Name="waste_analytics",Kind="View"]}[Data]
+				in
+				    View
+
+	annotation PBI_ResultType = Table

@@ -1,29 +1,30 @@
-/// Databricks SQL warehouse server hostname, for example adb-0000000000000000.0.azuredatabricks.net
-expression ServerHostname = "replace-with-workspace-host" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 6f1c0c2a-41b7-4f0e-9a21-6e3f2d5c8a01
+/// Databricks SQL warehouse hostname. deployment/push-powerbi-to-jumpbox.ps1 fills this from environment.json; when opening the project directly, set it in Transform data > Edit parameters.
+expression ServerHostname = "<databricks-host>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8a1c4e20-1111-4a10-9d30-0c2b5f7a0001
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Text
 
-/// HTTP path of the Databricks SQL warehouse, for example /sql/1.0/warehouses/abcdef1234567890
-expression HttpPath = "replace-with-warehouse-http-path" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 6f1c0c2a-41b7-4f0e-9a21-6e3f2d5c8a02
+/// HTTP path of the Databricks SQL warehouse.
+expression HttpPath = "/sql/1.0/warehouses/<sql-warehouse-id>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8a1c4e20-1111-4a10-9d30-0c2b5f7a0002
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Text
 
-/// Unity Catalog catalog holding the sales schema. Must match the catalog used by databricks/bootstrap.ps1.
+/// Unity Catalog catalog holding the shared views.
 expression CatalogName = "food_analytics" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 6f1c0c2a-41b7-4f0e-9a21-6e3f2d5c8a03
+	lineageTag: 8a1c4e20-1111-4a10-9d30-0c2b5f7a0003
 
 	annotation PBI_NavigationStepName = Navigation
 
 	annotation PBI_ResultType = Text
 
-expression SchemaName = "sales" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 6f1c0c2a-41b7-4f0e-9a21-6e3f2d5c8a04
+/// Schema holding sales_analytics, waste_analytics and sales_kpi.
+expression SchemaName = "gold" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8a1c4e20-1111-4a10-9d30-0c2b5f7a0004
 
 	annotation PBI_NavigationStepName = Navigation
 

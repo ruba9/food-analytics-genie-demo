@@ -8,6 +8,7 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+*.egg-info/
 
 # Secrets and local configuration
 .env
@@ -23,3 +24,12 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Rendered toolbox specs carry real endpoints; only the template is committed.
+agent/toolbox.yaml
+
+# azd environment state, which holds per-environment values.
+.azure/
+
+# Real environment identifiers; only the placeholder example is committed.
+deployment/environment.json

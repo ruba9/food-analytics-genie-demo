@@ -1,0 +1,16 @@
+{
+  "SubscriptionId": "<subscription-id>",
+  "ResourceGroup": "<resource-group>",
+  "Location": "swedencentral",
+  "JumpboxName": "vm-jumpbox",
+  "FoundryAccountName": "<foundry-account-name>",
+  "FoundryProjectName": "<foundry-project-name>",
+  "ModelDeploymentName": "gpt-5.1",
+  "ToolboxName": "food-analytics-tools",
+  "WorkspaceUrl": "https://adb-<workspace-id>.<n>.azuredatabricks.net",
+  "WarehouseId": "<sql-warehouse-id>",
+  "GenieSpaceId": "<genie-space-id>",
+  "FoundryAccountIdentityId": "<foundry-account-managed-identity-client-id>",
+  "FoundryProjectIdentityId": "<foundry-project-managed-identity-client-id>",
+  "JumpboxIdentityId": "<jumpbox-managed-identity-client-id>"
+}

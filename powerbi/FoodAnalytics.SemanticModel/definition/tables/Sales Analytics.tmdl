@@ -1,34 +1,41 @@
 table 'Sales Analytics'
-	lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d10
+	lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0100
 
-	measure 'Sales Volume (kg)' = SUM('Sales Analytics'[sales_volume_kg])
-		formatString: #,0.0
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d20
+	/// Net revenue after discounts, in SEK. This measure is the metric definition; the
+	/// Databricks view supplies only the additive column it sums.
+	measure 'Net Revenue' = SUM('Sales Analytics'[net_revenue])
+		formatString: #,0.00 "SEK"
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0110
 
-	measure 'Revenue (EUR)' = SUM('Sales Analytics'[revenue_eur])
-		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d21
+	measure 'Gross Revenue' = SUM('Sales Analytics'[gross_revenue])
+		formatString: #,0.00 "SEK"
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0111
 
-	measure 'Cost (EUR)' = SUM('Sales Analytics'[cost_eur])
-		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d22
+	measure 'Discount Amount' = SUM('Sales Analytics'[discount_amount])
+		formatString: #,0.00 "SEK"
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0112
 
-	measure 'Gross Margin (EUR)' = SUM('Sales Analytics'[gross_margin_eur])
-		formatString: \€#,0.00;(\€#,0.00);\€#,0.00
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d23
+	measure 'Cost of Goods' = SUM('Sales Analytics'[cost_of_goods])
+		formatString: #,0.00 "SEK"
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0113
 
-	measure 'Gross Margin %' = DIVIDE([Gross Margin (EUR)], [Revenue (EUR)])
-		formatString: 0.0%;-0.0%;0.0%
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d24
+	measure 'Gross Margin' = SUM('Sales Analytics'[gross_margin])
+		formatString: #,0.00 "SEK"
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0114
 
-	measure 'Order Lines' = SUM('Sales Analytics'[order_line_count])
+	/// Ratio of summed margin to summed revenue, never an average of row percentages.
+	measure 'Gross Margin %' = DIVIDE([Gross Margin], [Net Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0115
+
+	measure 'Units Sold' = SUM('Sales Analytics'[units_sold])
 		formatString: #,0
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d25
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0116
 
 	column sale_date
 		dataType: dateTime
 		formatString: yyyy-mm-dd
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d30
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0200
 		summarizeBy: none
 		sourceColumn: sale_date
 
@@ -37,7 +44,7 @@ table 'Sales Analytics'
 	column calendar_year
 		dataType: int64
 		formatString: 0
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d31
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0201
 		summarizeBy: none
 		sourceColumn: calendar_year
 
@@ -46,7 +53,7 @@ table 'Sales Analytics'
 	column calendar_quarter
 		dataType: int64
 		formatString: 0
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d32
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0202
 		summarizeBy: none
 		sourceColumn: calendar_quarter
 
@@ -54,7 +61,7 @@ table 'Sales Analytics'
 
 	column year_quarter
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d33
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0203
 		summarizeBy: none
 		sourceColumn: year_quarter
 
@@ -62,116 +69,150 @@ table 'Sales Analytics'
 
 	column year_month
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d34
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0204
 		summarizeBy: none
 		sourceColumn: year_month
 
 		annotation SummarizationSetBy = Automatic
 
+	column month_name
+		dataType: string
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0205
+		summarizeBy: none
+		sourceColumn: month_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0206
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
 	column category
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d35
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0207
 		summarizeBy: none
 		sourceColumn: category
 
 		annotation SummarizationSetBy = Automatic
 
-	column sub_category
+	column subcategory
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d36
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0208
 		summarizeBy: none
-		sourceColumn: sub_category
+		sourceColumn: subcategory
 
 		annotation SummarizationSetBy = Automatic
 
 	column brand
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d37
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0209
 		summarizeBy: none
 		sourceColumn: brand
 
 		annotation SummarizationSetBy = Automatic
 
-	column channel
-		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d38
+	column is_organic
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0210
 		summarizeBy: none
-		sourceColumn: channel
+		sourceColumn: is_organic
 
 		annotation SummarizationSetBy = Automatic
 
-	column country
+	column store_name
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d39
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0211
 		summarizeBy: none
-		sourceColumn: country
+		sourceColumn: store_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0212
+		summarizeBy: none
+		sourceColumn: city
 
 		annotation SummarizationSetBy = Automatic
 
 	column region
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3a
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0213
 		summarizeBy: none
 		sourceColumn: region
 
 		annotation SummarizationSetBy = Automatic
 
-	column plant_name
+	column store_format
 		dataType: string
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3b
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0214
 		summarizeBy: none
-		sourceColumn: plant_name
+		sourceColumn: store_format
 
 		annotation SummarizationSetBy = Automatic
 
-	column order_line_count
+	column units_sold
 		dataType: int64
 		formatString: 0
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3c
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0215
 		summarizeBy: none
-		sourceColumn: order_line_count
+		sourceColumn: units_sold
 		isHidden
 
 		annotation SummarizationSetBy = Automatic
 
-	column sales_volume_kg
-		dataType: double
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3d
+	column gross_revenue
+		dataType: decimal
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0216
 		summarizeBy: none
-		sourceColumn: sales_volume_kg
+		sourceColumn: gross_revenue
 		isHidden
 
 		annotation SummarizationSetBy = Automatic
 
-	column revenue_eur
-		dataType: double
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3e
+	column discount_amount
+		dataType: decimal
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0217
 		summarizeBy: none
-		sourceColumn: revenue_eur
+		sourceColumn: discount_amount
 		isHidden
 
 		annotation SummarizationSetBy = Automatic
 
-	column cost_eur
-		dataType: double
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d3f
+	column net_revenue
+		dataType: decimal
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0218
 		summarizeBy: none
-		sourceColumn: cost_eur
+		sourceColumn: net_revenue
 		isHidden
 
 		annotation SummarizationSetBy = Automatic
 
-	column gross_margin_eur
-		dataType: double
-		lineageTag: 2b7d9e10-5c44-4a3e-9b6d-0f1a7c4e5d40
+	column cost_of_goods
+		dataType: decimal
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0219
 		summarizeBy: none
-		sourceColumn: gross_margin_eur
+		sourceColumn: cost_of_goods
+		isHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_margin
+		dataType: decimal
+		lineageTag: 3c9d1a40-2222-4b21-8e42-1d3c6a8b0220
+		summarizeBy: none
+		sourceColumn: gross_margin
 		isHidden
 
 		annotation SummarizationSetBy = Automatic
 
 	partition 'Sales Analytics' = m
-		mode: directQuery
+		mode: import
 		source =
 				let
 				    Source = Databricks.Catalogs(ServerHostname, HttpPath, [Catalog=null, Database=null, EnableAutomaticProxyDiscovery=null]),

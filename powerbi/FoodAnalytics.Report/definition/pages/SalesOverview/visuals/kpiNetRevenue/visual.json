@@ -1,34 +1,33 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
-  "name": "yearSlicer",
+  "name": "kpiNetRevenue",
   "position": {
     "x": 16,
-    "y": 152,
-    "z": 4,
+    "y": 16,
+    "z": 0,
     "width": 296,
-    "height": 260,
-    "tabOrder": 4
+    "height": 120,
+    "tabOrder": 0
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "card",
     "query": {
       "queryState": {
         "Values": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "Sales Analytics"
                     }
                   },
-                  "Property": "calendar_year"
+                  "Property": "Net Revenue"
                 }
               },
-              "queryRef": "Sales Analytics.calendar_year",
-              "nativeQueryRef": "calendar_year",
-              "active": true
+              "queryRef": "Sales Analytics.Net Revenue",
+              "nativeQueryRef": "Net Revenue"
             }
           ]
         }
@@ -48,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Calendar Year'"
+                  "Value": "'Net Revenue'"
                 }
               }
             }
@@ -56,6 +55,35 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "2L"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "24D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

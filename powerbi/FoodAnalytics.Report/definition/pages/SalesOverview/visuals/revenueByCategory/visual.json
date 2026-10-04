@@ -42,11 +42,11 @@
                       "Entity": "Sales Analytics"
                     }
                   },
-                  "Property": "Revenue (EUR)"
+                  "Property": "Net Revenue"
                 }
               },
-              "queryRef": "Sales Analytics.Revenue (EUR)",
-              "nativeQueryRef": "Revenue (EUR)"
+              "queryRef": "Sales Analytics.Net Revenue",
+              "nativeQueryRef": "Net Revenue"
             }
           ]
         }
@@ -61,7 +61,7 @@
                     "Entity": "Sales Analytics"
                   }
                 },
-                "Property": "Revenue (EUR)"
+                "Property": "Net Revenue"
               }
             },
             "direction": "Descending"
@@ -83,7 +83,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Revenue by Product Category'"
+                  "Value": "'Net Revenue by Product Category'"
                 }
               }
             }
@@ -91,6 +91,35 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "2L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

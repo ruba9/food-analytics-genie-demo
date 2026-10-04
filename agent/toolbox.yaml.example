@@ -1,0 +1,7 @@
+description: Food analytics tools. Replace every placeholder before creating this toolbox.
+tools:
+  - type: mcp
+    name: databricks_genie
+    server_label: databricks_genie
+    project_connection_id: databricks-genie
+    require_approval: never

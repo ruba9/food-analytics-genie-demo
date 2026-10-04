@@ -1,0 +1,8 @@
+# Deployment manifest for the hosted agent build.
+# The remote builder treats any pyproject.toml as a Poetry project, so dependencies are
+# listed explicitly here and pyproject.toml is excluded via .agentignore.
+# Local development: pip install -e ".[test]"
+agent-framework-foundry
+agent-framework-foundry-hosting>=1.0.0b260918
+azure-identity
+python-dotenv
